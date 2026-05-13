@@ -1,0 +1,57 @@
+---
+layout: base.njk
+---
+{#
+  lore-trait.njk
+  Layout for Lore Trait wiki entries. Extends base.njk.
+
+  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+    name, subtype, abilities, characters
+#}
+
+<article class="wiki-entry wiki-entry--lore-trait">
+
+  <header class="wiki-entry__header">
+    <h1>{{ name }}</h1>
+    <p class="wiki-entry__category">Lore Trait</p>
+  </header>
+
+  <section class="wiki-entry__meta">
+
+    {% if subtype %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Subtype</span>
+      <span class="wiki-entry__value">{{ subtype }}</span>
+    </div>
+    {% endif %}
+
+    {% if abilities and abilities.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Abilities</span>
+      <ul class="wiki-entry__list">
+        {% for ability in abilities %}
+        <li>{{ ability }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if characters and characters.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Characters with this Trait</span>
+      <ul class="wiki-entry__list">
+        {% for character in characters %}
+        <li><a href="/wiki/characters/{{ character }}/">{{ character }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </section>
+
+  {# The Markdown body — full description of the trait #}
+  <section class="wiki-entry__body">
+    {{ content | safe }}
+  </section>
+
+</article>

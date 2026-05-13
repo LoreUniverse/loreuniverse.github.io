@@ -1,0 +1,9 @@
+# Node dependencies
+node_modules/
+
+# Eleventy compiled output
+_site/
+
+# OS files
+.DS_Store
+Thumbs.db

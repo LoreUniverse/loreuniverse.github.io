@@ -1,0 +1,46 @@
+{#
+  base.njk
+  Root layout — wraps every page on the site.
+  All other templates extend this one using `layout: base.njk` in their
+  front matter or directory data file.
+
+  Available variables:
+    title     — page title, set in each page's front matter
+    content   — the rendered HTML output of the child template, injected
+                into the <main> block via the `safe` filter (which tells
+                Nunjucks not to escape the HTML)
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or name }} | Lore Universe</title>
+  {# Uncomment the line below when a stylesheet is added during the design phase #}
+  {# <link rel="stylesheet" href="/assets/css/styles.css"> #}
+</head>
+<body>
+
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/wiki/">Wiki</a>
+      <a href="/wiki/characters/">Characters</a>
+      <a href="/wiki/mechanics/">Mechanics</a>
+      <a href="/wiki/lore-traits/">Lore Traits</a>
+      <a href="/wiki/locations/">Locations</a>
+      <a href="/wiki/factions/">Factions</a>
+      <a href="/chapters/">Chapters</a>
+    </nav>
+  </header>
+
+  <main>
+    {{ content | safe }}
+  </main>
+
+  <footer>
+    <p>&copy; Lore Universe. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

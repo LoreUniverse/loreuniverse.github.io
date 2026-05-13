@@ -1,0 +1,57 @@
+---
+layout: base.njk
+---
+{#
+  mechanic.njk
+  Layout for Mechanic wiki entries. Extends base.njk.
+
+  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+    name, category, related_mechanics, related_entries
+#}
+
+<article class="wiki-entry wiki-entry--mechanic">
+
+  <header class="wiki-entry__header">
+    <h1>{{ name }}</h1>
+    <p class="wiki-entry__category">Mechanic</p>
+  </header>
+
+  <section class="wiki-entry__meta">
+
+    {% if category %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Category</span>
+      <span class="wiki-entry__value">{{ category }}</span>
+    </div>
+    {% endif %}
+
+    {% if related_mechanics and related_mechanics.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Mechanics</span>
+      <ul class="wiki-entry__list">
+        {% for mechanic in related_mechanics %}
+        <li><a href="/wiki/mechanics/{{ mechanic }}/">{{ mechanic }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if related_entries and related_entries.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Entries</span>
+      <ul class="wiki-entry__list">
+        {% for entry in related_entries %}
+        <li>{{ entry }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </section>
+
+  {# The Markdown body — full description of the mechanic #}
+  <section class="wiki-entry__body">
+    {{ content | safe }}
+  </section>
+
+</article>

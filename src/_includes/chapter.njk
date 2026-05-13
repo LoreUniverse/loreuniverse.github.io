@@ -1,0 +1,49 @@
+---
+layout: base.njk
+---
+{#
+  chapter.njk
+  Layout for novel chapter pages. Extends base.njk.
+
+  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+    title, chapter_number, arc, publication_date, summary, wiki_links
+
+  Notes:
+    - publication_date is formatted using the `readableDate` filter
+      defined in .eleventy.js
+    - wiki_links is a boolean that will control inline wiki link
+      visibility once the wiki link processor is implemented
+#}
+
+<article class="chapter">
+
+  <header class="chapter__header">
+
+    {% if arc %}
+    <p class="chapter__arc">{{ arc }}</p>
+    {% endif %}
+
+    <p class="chapter__number">Chapter {{ chapter_number }}</p>
+    <h1 class="chapter__title">{{ title }}</h1>
+
+    {% if publication_date %}
+    <p class="chapter__date">{{ publication_date | readableDate }}</p>
+    {% endif %}
+
+    {% if summary %}
+    <p class="chapter__summary">{{ summary }}</p>
+    {% endif %}
+
+  </header>
+
+  {# The Markdown body — full chapter prose #}
+  {# Future: wiki link processor transform will run on this content #}
+  <section class="chapter__body">
+    {{ content | safe }}
+  </section>
+
+  <nav class="chapter__pagination">
+    {# Future: previous / next chapter navigation links #}
+  </nav>
+
+</article>
