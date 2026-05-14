@@ -7,3 +7,7 @@ _site/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Obsidian migration working folders — personal content, not project code
+scripts/staging/
+scripts/converted/
