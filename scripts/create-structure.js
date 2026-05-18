@@ -6,7 +6,7 @@
  * not overwrite files that already exist.
  * 
  * Usage: node scripts/create-structure.js
- * Run from the project root (lorekeeper.github.io/).
+ * Run from the project root (loreuniverse.github.io/).
  */
 
 const fs   = require("fs");

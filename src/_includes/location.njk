@@ -30,7 +30,7 @@ layout: base.njk
       <span class="wiki-entry__label">Factions</span>
       <ul class="wiki-entry__list">
         {% for faction in factions %}
-        <li><a href="/wiki/factions/{{ faction }}/">{{ faction }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/factions/{{ faction }}/">{{ faction }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -41,7 +41,7 @@ layout: base.njk
       <span class="wiki-entry__label">Notable Characters</span>
       <ul class="wiki-entry__list">
         {% for character in notable_characters %}
-        <li><a href="/wiki/characters/{{ character }}/">{{ character }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/characters/{{ character }}/">{{ character }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -52,7 +52,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Lore</span>
       <ul class="wiki-entry__list">
         {% for entry in lore %}
-        <li><a href="/wiki/lore/{{ entry }}/">{{ entry }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/lore/{{ entry }}/">{{ entry }}</a></li>
         {% endfor %}
       </ul>
     </div>

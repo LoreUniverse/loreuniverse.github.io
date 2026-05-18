@@ -1,7 +1,7 @@
 ---
 title: Mechanics
 layout: base.njk
-permalink: /wiki/mechanics/
+permalink: /lorekeeper/wiki/mechanics/
 ---
 
 # Mechanics

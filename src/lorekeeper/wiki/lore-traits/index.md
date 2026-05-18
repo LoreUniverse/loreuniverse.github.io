@@ -1,7 +1,7 @@
 ---
 title: Lore Traits
 layout: base.njk
-permalink: /wiki/lore-traits/
+permalink: /lorekeeper/wiki/lore-traits/
 ---
 
 # Lore Traits

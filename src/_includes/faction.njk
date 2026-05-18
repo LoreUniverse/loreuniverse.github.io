@@ -36,7 +36,7 @@ layout: base.njk
     <div class="wiki-entry__field">
       <span class="wiki-entry__label">Base Location</span>
       <span class="wiki-entry__value">
-        <a href="/wiki/locations/{{ base_location }}/">{{ base_location }}</a>
+        <a href="{{ site.modules.lorekeeper.wiki }}/locations/{{ base_location }}/">{{ base_location }}</a>
       </span>
     </div>
     {% endif %}
@@ -46,7 +46,7 @@ layout: base.njk
       <span class="wiki-entry__label">Notable Characters</span>
       <ul class="wiki-entry__list">
         {% for character in notable_characters %}
-        <li><a href="/wiki/characters/{{ character }}/">{{ character }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/characters/{{ character }}/">{{ character }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -57,7 +57,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Lore</span>
       <ul class="wiki-entry__list">
         {% for entry in lore %}
-        <li><a href="/wiki/lore/{{ entry }}/">{{ entry }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/lore/{{ entry }}/">{{ entry }}</a></li>
         {% endfor %}
       </ul>
     </div>

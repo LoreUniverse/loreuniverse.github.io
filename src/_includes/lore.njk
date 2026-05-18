@@ -30,7 +30,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Characters</span>
       <ul class="wiki-entry__list">
         {% for character in related_characters %}
-        <li><a href="/wiki/characters/{{ character }}/">{{ character }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/characters/{{ character }}/">{{ character }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -41,7 +41,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Locations</span>
       <ul class="wiki-entry__list">
         {% for location in related_locations %}
-        <li><a href="/wiki/locations/{{ location }}/">{{ location }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/locations/{{ location }}/">{{ location }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -52,7 +52,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Factions</span>
       <ul class="wiki-entry__list">
         {% for faction in related_factions %}
-        <li><a href="/wiki/factions/{{ faction }}/">{{ faction }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/factions/{{ faction }}/">{{ faction }}</a></li>
         {% endfor %}
       </ul>
     </div>

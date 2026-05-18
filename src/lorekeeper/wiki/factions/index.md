@@ -1,7 +1,7 @@
 ---
 title: Factions
 layout: base.njk
-permalink: /wiki/factions/
+permalink: /lorekeeper/wiki/factions/
 ---
 
 # Factions

@@ -1,5 +1,13 @@
 const path = require("path");
 const { HtmlBasePlugin } = require("@11ty/eleventy");
+const siteConfig = require("./src/_data/config.js");
+const site       = require("./src/_data/site.js");
+
+// pathPrefix is "/" because the site is now served from the org-page root
+// (https://loreuniverse.github.io/). If the site is ever moved back to a
+// subdirectory, change this value and HtmlBasePlugin will rewrite all
+// root-relative URLs accordingly.
+const PATH_PREFIX = "/";
 
 // =============================================================================
 // LORE UNIVERSE — ELEVENTY CONFIGURATION
@@ -50,32 +58,32 @@ module.exports = function(eleventyConfig) {
   // front matter fields defined in that entry's .md file.
 
   eleventyConfig.addCollection("characters", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/characters/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/characters/*.md");
   });
 
   eleventyConfig.addCollection("loreTraits", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/lore-traits/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/lore-traits/*.md");
   });
 
   eleventyConfig.addCollection("mechanics", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/mechanics/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/mechanics/*.md");
   });
 
   eleventyConfig.addCollection("locations", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/locations/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/locations/*.md");
   });
 
   eleventyConfig.addCollection("factions", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/factions/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/factions/*.md");
   });
 
   eleventyConfig.addCollection("lore", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/lore/*.md");
+    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/lore/*.md");
   });
 
   eleventyConfig.addCollection("chapters", function(collectionApi) {
     return collectionApi
-      .getFilteredByGlob("src/chapters/*.md")
+      .getFilteredByGlob("src/lorekeeper/books/book1/chapters/*.md")
       .sort((a, b) => a.data.chapter_number - b.data.chapter_number);
   });
 
@@ -113,14 +121,43 @@ module.exports = function(eleventyConfig) {
   });
 
   // ---------------------------------------------------------------------------
-  // 4. FUTURE: WIKI LINK PROCESSOR
+  // 4. WIKI LINK PROCESSOR
   // ---------------------------------------------------------------------------
-  // A transform will be added here to process the {category|slug|display}
-  // inline wiki link syntax in chapter pages. It will convert these tokens
-  // into anchor tags (or plain text) depending on the wikiLinksVisible
-  // setting in src/_data/config.js.
+  // Transforms {category|slug|display} tokens in rendered HTML into anchor
+  // tags or invisible spans, depending on the page type and visibility settings.
   //
-  // This is deferred until wiki entries and chapters exist to link between.
+  // Wiki entry pages: links are always visible.
+  // Chapter pages: links are visible only when both siteConfig.wikiLinksVisible
+  // (src/_data/config.js) and the page's own `wiki_links` front matter are true.
+  // When hidden, the token becomes a <span> with no visual styling — the link
+  // target exists in the markup but is invisible to readers.
+  //
+  // The six valid category values match the site's wiki folder names exactly.
+
+  const WIKI_LINK_RE = /\{(characters|locations|factions|lore-traits|mechanics|lore)\|([^|]+)\|([^}]+)\}/g;
+
+  eleventyConfig.addTransform("wikiLinks", function(content, outputPath) {
+    if (!outputPath || !outputPath.endsWith(".html")) return content;
+
+    const normalizedPath = outputPath.replace(/\\/g, "/");
+    const isWiki    = normalizedPath.includes("/wiki/");
+    const isChapter = normalizedPath.includes("/chapters/");
+
+    if (!isWiki && !isChapter) return content;
+
+    // Chapters: visible only if both the site-wide toggle and the per-page
+    // flag are true. Wiki entries are always visible.
+    const visible = isWiki
+      ? true
+      : siteConfig.wikiLinksVisible && content.includes('data-wiki-links="true"');
+
+    return content.replace(WIKI_LINK_RE, (match, category, slug, display) => {
+      if (visible) {
+        return `<a class="wiki-link" href="${site.modules.lorekeeper.wiki}/${category}/${slug}/">${display}</a>`;
+      }
+      return `<span class="wiki-link wiki-link--hidden">${display}</span>`;
+    });
+  });
 
   // ---------------------------------------------------------------------------
   // 5. ELEVENTY RETURN CONFIG
@@ -138,7 +175,7 @@ module.exports = function(eleventyConfig) {
     // pathPrefix tells Eleventy (and HtmlBasePlugin) that the site is served
     // from /lorekeeper/ on GitHub Pages, not the domain root. Update this
     // value if the repo is ever renamed or moved to a custom domain.
-    pathPrefix: "/lorekeeper/",
+    pathPrefix: PATH_PREFIX,
     dir: {
       input: "src",
       output: "_site",

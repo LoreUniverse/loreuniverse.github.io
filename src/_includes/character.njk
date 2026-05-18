@@ -40,7 +40,7 @@ layout: base.njk
     <div class="wiki-entry__field">
       <span class="wiki-entry__label">Home Location</span>
       <span class="wiki-entry__value">
-        <a href="/wiki/locations/{{ home_location }}/">{{ home_location }}</a>
+        <a href="{{ site.modules.lorekeeper.wiki }}/locations/{{ home_location }}/">{{ home_location }}</a>
       </span>
     </div>
     {% endif %}
@@ -50,7 +50,7 @@ layout: base.njk
       <span class="wiki-entry__label">Factions</span>
       <ul class="wiki-entry__list">
         {% for faction in factions %}
-        <li><a href="/wiki/factions/{{ faction }}/">{{ faction }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/factions/{{ faction }}/">{{ faction }}</a></li>
         {% endfor %}
       </ul>
     </div>
@@ -61,7 +61,7 @@ layout: base.njk
       <span class="wiki-entry__label">Lore Traits</span>
       <ul class="wiki-entry__list">
         {% for trait in lore_traits %}
-        <li><a href="/wiki/lore-traits/{{ trait }}/">{{ trait }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/lore-traits/{{ trait }}/">{{ trait }}</a></li>
         {% endfor %}
       </ul>
     </div>

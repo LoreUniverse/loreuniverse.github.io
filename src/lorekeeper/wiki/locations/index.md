@@ -1,7 +1,7 @@
 ---
 title: Locations
 layout: base.njk
-permalink: /wiki/locations/
+permalink: /lorekeeper/wiki/locations/
 ---
 
 # Locations

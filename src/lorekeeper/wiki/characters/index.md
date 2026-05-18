@@ -1,7 +1,7 @@
 ---
 title: Characters
 layout: base.njk
-permalink: /wiki/characters/
+permalink: /lorekeeper/wiki/characters/
 ---
 
 # Characters

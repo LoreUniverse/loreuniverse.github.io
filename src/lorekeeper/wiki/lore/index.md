@@ -1,7 +1,7 @@
 ---
 title: Lore
 layout: base.njk
-permalink: /wiki/lore/
+permalink: /lorekeeper/wiki/lore/
 ---
 
 # Lore

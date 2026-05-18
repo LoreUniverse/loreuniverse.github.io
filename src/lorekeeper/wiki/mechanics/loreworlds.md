@@ -1,0 +1,12 @@
+---
+name: Loreworlds
+---
+
+A planet or otherwise filled space in the void can gain enough Lore to become a Loreworld. Usually, this happens once enough sentient lifeforms with complex thought processes have garnered enough Lore through shared history and creativity. The combined energy of the Lore seeps into the world itself, eventually granting it a place in the Universal Lore.
+
+Before a world becomes part of the Universal Lore, it is mostly disconnected from the wider universe. At most, the immediate surroundings might be explorable, but any further beyond would be seen as just empty space. Modern technology, like on Earth, may be able to probe further but they would never be able to venture out there safely. The sole exception to this disconnection rule is Loreseekers that have become powerful enough despite the environmental limitations to leave the world with their own power. Even after entering the Universal Lore, they retain knowledge of their home, and can sometimes even establish a direct connection to inhabitants of their old home world. This connection is tenuous at best, requires a powerful Loreseeker, and is limited to small exchanges of messages - essentially divine revelations. Before a Loreseeker reaches that level of power, they will rarely have any lingering connection to their home world, unless their home world is already a Loreworld. However, it is also within their interest to establish or maintain a connection to their home world, since it can represent a sudden influx of resources once it becomes a Loreworld. They can sometimes "adopt" their former factions into their current ones, providing guidance and resources, while their former factions provide them with potential manpower and more importantly, Mythos artifacts.
+
+Once a world becomes a Loreworld, the wider universe is "unlocked." Suddenly, empty space becomes populated with distant galaxies. The void becomes traversable, whether by technology or magic. And once a world becomes a Loreworld, both of them are valid options.
+
+A new Loreworld has a short period of time before being exposed to the various forces of the universe. If the world is lucky, they will end up within a civilized area, where inter-galactic laws protect the fledgeling Loreworlds from total annihilation or enslavement by outside forces. If the world is unlucky, they might still end up extremely far away from any civilized space, or even worse, in the territory of a lawless space.
+

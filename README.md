@@ -4,7 +4,7 @@ A personal creative writing website hosting a serialized sci-fi/fantasy novel an
 
 The long-term vision is multiple novels set in the same universe, all supported by a shared, ever-growing wiki. Even longer-term vision is video games, tabletop RPGs, board games, animations, and more creative media set in the same universe.
 
-Live site: [loreuniverse.github.io/lorekeeper](https://loreuniverse.github.io/lorekeeper)
+Live site: [loreuniverse.github.io](https://loreuniverse.github.io)
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "name": "lorekeeper.github.io",
+  "name": "loreuniverse.github.io",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LoreUniverse/lorekeeper.github.io.git"
+    "url": "git+https://github.com/LoreUniverse/loreuniverse.github.io.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/LoreUniverse/lorekeeper.github.io/issues"
+    "url": "https://github.com/LoreUniverse/loreuniverse.github.io/issues"
   },
-  "homepage": "https://github.com/LoreUniverse/lorekeeper.github.io#readme",
+  "homepage": "https://github.com/LoreUniverse/loreuniverse.github.io#readme",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.5"
   }

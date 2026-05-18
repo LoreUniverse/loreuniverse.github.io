@@ -30,7 +30,7 @@ layout: base.njk
       <span class="wiki-entry__label">Related Mechanics</span>
       <ul class="wiki-entry__list">
         {% for mechanic in related_mechanics %}
-        <li><a href="/wiki/mechanics/{{ mechanic }}/">{{ mechanic }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/mechanics/{{ mechanic }}/">{{ mechanic }}</a></li>
         {% endfor %}
       </ul>
     </div>

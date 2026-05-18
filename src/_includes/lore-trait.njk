@@ -41,7 +41,7 @@ layout: base.njk
       <span class="wiki-entry__label">Characters with this Trait</span>
       <ul class="wiki-entry__list">
         {% for character in characters %}
-        <li><a href="/wiki/characters/{{ character }}/">{{ character }}</a></li>
+        <li><a href="{{ site.modules.lorekeeper.wiki }}/characters/{{ character }}/">{{ character }}</a></li>
         {% endfor %}
       </ul>
     </div>
