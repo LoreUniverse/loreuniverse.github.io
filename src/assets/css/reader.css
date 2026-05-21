@@ -342,7 +342,13 @@ body > footer {
   border-radius: 2rem;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
   font-family: var(--font-ui);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+              transform 0.22s ease;
+}
+
+/* Slide the pill below the viewport when scrolling down. */
+.reader-controls--hidden {
+  transform: translateY(calc(100% + 2.5rem));
 }
 
 .reader-controls__divider {
@@ -441,6 +447,12 @@ h3 {
     right: 50%;
     transform: translateX(50%);
     bottom: 1rem;
+  }
+
+  /* On mobile the base transform includes translateX for centering,
+     so the hidden state must carry both axes together. */
+  .reader-controls--hidden {
+    transform: translateX(50%) translateY(calc(100% + 2rem));
   }
 
   .chapter__body p {

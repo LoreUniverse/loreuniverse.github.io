@@ -49,8 +49,39 @@
     }
   }
 
+  // Hide the pill when scrolling down, reveal it when scrolling up.
+  // Uses rAF throttling and a small threshold to avoid jitter.
+  function initScrollHide() {
+    var pill = document.querySelector('.reader-controls');
+    if (!pill) return;
+
+    var lastY   = window.scrollY;
+    var ticking = false;
+
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        var y = window.scrollY;
+        if (y < 80) {
+          // Always show near the top of the page.
+          pill.classList.remove('reader-controls--hidden');
+        } else if (y > lastY + 6) {
+          // Scrolling down — slide out.
+          pill.classList.add('reader-controls--hidden');
+        } else if (y < lastY - 6) {
+          // Scrolling up — slide back in.
+          pill.classList.remove('reader-controls--hidden');
+        }
+        lastY   = y;
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     syncState();
+    initScrollHide();
 
     document.addEventListener('click', function (e) {
       var sizeBtn = e.target.closest('[data-font-size-btn]');
