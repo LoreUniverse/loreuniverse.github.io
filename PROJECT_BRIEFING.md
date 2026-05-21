@@ -28,6 +28,8 @@
 | Editor | Visual Studio Code | |
 | Notes source | Obsidian | Uses `[[double bracket]]` internal link syntax |
 
+**Live site:** https://loreuniverse.github.io/
+
 ---
 
 ## 3. Folder Structure
@@ -197,6 +199,33 @@ module.exports = {
 };
 ```
 
+### Layout Chaining (important)
+All entry layout templates (`character.njk`, etc.) extend `base.njk` using front matter. The `---` front matter block **must be the very first thing in the file** — before any Nunjucks comments. If a comment appears before the `---`, Eleventy's front matter parser will not detect it and the layout chain to `base.njk` will silently break, producing pages with no nav or HTML shell.
+
+```njk
+---
+layout: base.njk
+---
+{# Comment goes after the front matter, not before #}
+```
+
+### Directory Data Files
+Each wiki category folder and the chapters folder contains a `.11tydata.json` file that automatically assigns the correct layout template to every entry in that folder. This means individual entry `.md` files do not need a `layout:` field in their front matter.
+
+```json
+{ "layout": "character.njk" }
+```
+
+### Permalink Convention
+All category index pages declare an explicit `permalink` field in their front matter to make their URL unambiguous regardless of file location:
+
+```yaml
+permalink: /wiki/characters/
+```
+
+### Subdirectory URL Routing
+The site is served from `loreuniverse.github.io`, not a subdirectory. Eleventy's `HtmlBasePlugin` (added in `.eleventy.js`) automatically rewrites all root-relative URLs in the HTML output. `pathPrefix` is set in the `.eleventy.js` return config. If the repo is ever renamed or moved to a custom domain, update `pathPrefix` accordingly and remove the plugin if deploying to a root domain.
+
 ### Obsidian Migration
 The script `scripts/migrate-obsidian.js` converts Obsidian `[[double bracket]]` links to the `{category|slug|display}` syntax above.
 
@@ -204,14 +233,15 @@ The script `scripts/migrate-obsidian.js` converts Obsidian `[[double bracket]]` 
 1. Copy Obsidian `.md` files into the matching subfolder under `scripts/staging/` (e.g., character notes → `scripts/staging/characters/`)
 2. Run: `node scripts/migrate-obsidian.js`
 3. Find converted files in `scripts/converted/{category}/` — each has a minimal `name:` front matter field; fill in the remaining schema fields by hand
-4. Copy the completed files into `src/wiki/{category}/`
+4. Copy the completed files into `src/lorekeeper/wiki/{category}/`
 
-The script builds a lookup index from both staging files and already-migrated `src/wiki/` entries. Unresolved links (page name not found in either source) are left unconverted and reported in the console output.
+The script builds a lookup index from both staging files and already-migrated `src/lorekeeper/wiki/` entries. Unresolved links (page name not found in either source) are left unconverted and reported in the console output. Both `staging/` and `converted/` are gitignored.
 
 ### Naming Conventions
 - Entry filenames: lowercase, hyphen-separated (e.g., `aldren-voss.md`, `the-shattered-reach.md`)
 - Slugs in cross-references match filenames without the `.md` extension
-- Template files: camelCase or hyphen-separated `.njk` files in `_includes/`
+- Template files: hyphen-separated `.njk` files in `_includes/`
+- Category collection names in `.eleventy.js`: camelCase (e.g., `loreTraits`, `characters`)
 
 ### Global Data Files (`src/_data/`)
 Eleventy automatically exposes every file in `src/_data/` as a template variable named after the file. Two patterns to follow:
@@ -227,6 +257,10 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 - Dropdowns are click-to-open (not hover) so touch devices work. Outside click and Escape close them.
 - One level of dropdown only. Deeper hierarchy belongs on landing pages.
 - The inline CSS and JS for the dropdown in `base.njk` are placeholders — when a real stylesheet and `/assets/js/` exist, they should move out.
+
+### Eleventy Filters (defined in `.eleventy.js`)
+- `readableDate` — converts `YYYY-MM-DD` to `Month DD, YYYY`. Used in chapter pages.
+- `slugify` — converts freeform text to a URL-safe slug. Used in templates when building links from front matter fields.
 
 ---
 
@@ -276,11 +310,12 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 - When multiple approaches exist, briefly describe the tradeoff before recommending one
 - Prefer generating complete, ready-to-use files over code snippets where possible
 - Flag anything that will need to be manually updated after generation (e.g., placeholder values, version numbers)
+- Do not provide input on any creative aspects of this project unless specifically prompted. Ask if you think something needs to be addressed immediately.
 
 ---
 
 ## 9. Working Directory
-- All work for this project will be done in `C:\Users\timmy\OneDrive\Desktop\LoreUniverse`
+- All work for this project will be done in `C:\Users\timmy\Desktop\LoreUniverse\lorekeeper`
 
 ---
 
@@ -294,6 +329,13 @@ The module-based URL structure, three-item modular navbar with click dropdown, r
 - **Future modules.** The structure is in place to add `/game-resources/`, `/art/`, etc. as siblings of `/lorekeeper/`. No work needed until a second module is wanted.
 - **Shared design layer.** Before the next module's landing page is built, extract reusable partials (hero, module card, featured-content tile, footer) into `_includes/partials/` and define shared CSS variables for color and typography. Also move the inline CSS/JS in `base.njk` into `/assets/` at this point.
 - **Books collection.** `src/lorekeeper/books/index.md` currently hand-lists Book 1. When a second book is added, replace the hand-list with a `books` collection driven by a `books.js` data file or by globbing `src/lorekeeper/books/*/info.md`.
+
+### Near-term planned features
+Small, well-scoped items to add once content density justifies them:
+
+- **Previous / next chapter navigation** — pagination links at the bottom of chapter pages. A placeholder comment is already in `chapter.njk` marking where these go.
+- **Wiki category images** — the wiki homepage (`src/lorekeeper/wiki/index.md`) is planned to display each category as a visual box with an image. Deferred to design session.
+- **Visual design and theme** — all templates are currently unstyled HTML. CSS to be added to `src/assets/css/` with passthrough copy uncommented in `.eleventy.js`.
 
 ### Cross-module linking convention
 - The current wiki link transform hardcodes `/lorekeeper/wiki/${category}/${slug}/`. This works for now because all custom links target wiki entries.
