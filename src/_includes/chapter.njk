@@ -10,10 +10,24 @@ layout: base.njk
 
   Notes:
     - publication_date is formatted using the `readableDate` filter
-      defined in .eleventy.js
-    - wiki_links is a boolean that will control inline wiki link
-      visibility once the wiki link processor is implemented
+    - wiki_links boolean controls whether the wikiLinks transform renders
+      real <a> tags; client-side CSS + reader.js handle show/hide at runtime
+    - Reader controls (font size, wiki links, theme) are fixed-position and
+      appear on all chapter pages; all state is persisted in localStorage
 #}
+
+{# Reader controls — floating pill, bottom-right. JS in reader.js drives state. #}
+<div class="reader-controls" role="toolbar" aria-label="Reading preferences">
+  <button class="reader-controls__btn reader-controls__btn--sm" data-font-size-btn="sm" aria-pressed="false" aria-label="Small text size">A</button>
+  <button class="reader-controls__btn reader-controls__btn--md" data-font-size-btn="md" aria-pressed="false" aria-label="Medium text size">A</button>
+  <button class="reader-controls__btn reader-controls__btn--lg" data-font-size-btn="lg" aria-pressed="false" aria-label="Large text size">A</button>
+  {% if wiki_links %}
+  <div class="reader-controls__divider" aria-hidden="true"></div>
+  <button class="reader-controls__btn reader-controls__btn--wiki" id="wiki-links-toggle" aria-pressed="true" aria-label="Toggle wiki links">Links</button>
+  {% endif %}
+  <div class="reader-controls__divider" aria-hidden="true"></div>
+  <button class="reader-controls__theme-btn" id="theme-toggle" aria-label="Toggle theme">Dark</button>
+</div>
 
 <article class="chapter" data-wiki-links="{{ wiki_links }}">
 
@@ -36,8 +50,6 @@ layout: base.njk
 
   </header>
 
-  {# The Markdown body — full chapter prose #}
-  {# Future: wiki link processor transform will run on this content #}
   <section class="chapter__body">
     {{ content | safe }}
   </section>

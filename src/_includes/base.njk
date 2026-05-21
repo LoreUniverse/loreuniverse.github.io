@@ -18,40 +18,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title or name }} | Lore Universe</title>
-  {# Uncomment the line below when a stylesheet is added during the design phase #}
-  {# <link rel="stylesheet" href="/assets/css/styles.css"> #}
+  {# wiki-links-default seeds the reader's first-visit wiki link preference.
+     Subsequent visits use the value stored in localStorage instead. #}
+  <meta name="wiki-links-default" content="{{ config.wikiLinksVisible }}">
+  <link rel="stylesheet" href="/assets/css/reader.css">
 
   {#
-    Minimum dropdown styling. This is intentionally bare — proper visual
-    design is deferred. These rules exist only to make the dropdown function:
-    submenus must be absolutely positioned so they overlay content rather
-    than push it down, and the hidden attribute must reliably hide them.
+    Anti-FOUC: apply saved theme, font-size, and wiki-link visibility before
+    first paint so the page never flickers on load.
+    Must run synchronously in <head>. The meta tag above is parsed before
+    this script runs, so it is safe to read here.
   #}
-  <style>
-    .nav__list { list-style: none; padding: 0; margin: 0; display: flex; gap: 1rem; }
-    .nav__item { position: relative; }
-    .nav__toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0 0.25rem;
-      font: inherit;
-    }
-    .nav__submenu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      list-style: none;
-      padding: 0.5rem;
-      margin: 0;
-      min-width: 8rem;
-      background: #fff;
-      border: 1px solid #ccc;
-      z-index: 10;
-    }
-    .nav__submenu[hidden] { display: none; }
-    .nav__sublink { display: block; padding: 0.25rem 0; }
-  </style>
+  <script>
+    (function () {
+      var t = localStorage.getItem('lr-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var f = localStorage.getItem('lr-font-size') || 'md';
+      document.documentElement.dataset.theme    = t;
+      document.documentElement.dataset.fontSize = f;
+
+      var storedWiki = localStorage.getItem('lr-wiki-links');
+      if (storedWiki !== null) {
+        if (storedWiki === 'false') document.documentElement.dataset.wikiLinks = 'hidden';
+      } else {
+        var meta = document.querySelector('meta[name="wiki-links-default"]');
+        if (meta && meta.content === 'false') {
+          document.documentElement.dataset.wikiLinks = 'hidden';
+        }
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -106,8 +102,6 @@
   {#
     Dropdown behavior. Click chevron to toggle, click outside to close,
     Escape to close. Click-to-open (not hover) so touch devices work.
-    Kept inline because there is no /assets/js/ folder yet — when one is
-    added during the design phase, this should move into a script file.
   #}
   <script>
     (function () {
@@ -133,17 +127,17 @@
         });
       });
 
-      // Click anywhere outside a submenu closes all dropdowns
       document.addEventListener('click', e => {
         if (!e.target.closest('.nav__item')) closeAll();
       });
 
-      // Escape closes all dropdowns
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeAll();
       });
     })();
   </script>
+
+  <script src="/assets/js/reader.js" defer></script>
 
 </body>
 </html>

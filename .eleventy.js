@@ -1,7 +1,9 @@
 const path = require("path");
 const { HtmlBasePlugin } = require("@11ty/eleventy");
-const siteConfig = require("./src/_data/config.js");
-const site       = require("./src/_data/site.js");
+const site = require("./src/_data/site.js");
+// siteConfig (src/_data/config.js) is no longer imported here.
+// wikiLinksVisible is read directly by the browser via a <meta> tag in
+// base.njk, where Eleventy exposes _data files as template variables.
 
 // pathPrefix is "/" because the site is now served from the org-page root
 // (https://loreuniverse.github.io/). If the site is ever moved back to a
@@ -42,7 +44,8 @@ module.exports = function(eleventyConfig) {
   // Tells Eleventy to copy these asset types directly to _site/ without
   // processing them. Uncomment each line when you add those assets to src/.
   //
-  // eleventyConfig.addPassthroughCopy("src/assets/css");
+  eleventyConfig.addPassthroughCopy("src/assets/css");
+  eleventyConfig.addPassthroughCopy("src/assets/js");
   // eleventyConfig.addPassthroughCopy("src/assets/images");
   // eleventyConfig.addPassthroughCopy("src/assets/fonts");
 
@@ -124,13 +127,18 @@ module.exports = function(eleventyConfig) {
   // 4. WIKI LINK PROCESSOR
   // ---------------------------------------------------------------------------
   // Transforms {category|slug|display} tokens in rendered HTML into anchor
-  // tags or invisible spans, depending on the page type and visibility settings.
+  // tags or invisible spans, depending on the page type and per-page flag.
   //
-  // Wiki entry pages: links are always visible.
-  // Chapter pages: links are visible only when both siteConfig.wikiLinksVisible
-  // (src/_data/config.js) and the page's own `wiki_links` front matter are true.
-  // When hidden, the token becomes a <span> with no visual styling — the link
-  // target exists in the markup but is invisible to readers.
+  // Wiki entry pages: links are always rendered as <a>.
+  // Chapter pages with wiki_links: true: links are always rendered as <a>.
+  //   Visibility is controlled client-side via CSS + reader.js (the reader
+  //   can toggle them; their preference persists in localStorage).
+  // Chapter pages with wiki_links: false: tokens become invisible <span>s
+  //   (per-page hard opt-out — the reader toggle has no effect here).
+  //
+  // The site-wide wikiLinksVisible default (src/_data/config.js) is no longer
+  // evaluated here. It is read by the browser via <meta name="wiki-links-default">
+  // in base.njk to seed the reader's first-visit preference.
   //
   // The six valid category values match the site's wiki folder names exactly.
 
@@ -145,11 +153,9 @@ module.exports = function(eleventyConfig) {
 
     if (!isWiki && !isChapter) return content;
 
-    // Chapters: visible only if both the site-wide toggle and the per-page
-    // flag are true. Wiki entries are always visible.
-    const visible = isWiki
-      ? true
-      : siteConfig.wikiLinksVisible && content.includes('data-wiki-links="true"');
+    // Wiki pages and chapters with wiki_links: true always get real <a> tags.
+    // Chapters with wiki_links: false fall through to the hidden-span branch.
+    const visible = isWiki || content.includes('data-wiki-links="true"');
 
     return content.replace(WIKI_LINK_RE, (match, category, slug, display) => {
       if (visible) {
