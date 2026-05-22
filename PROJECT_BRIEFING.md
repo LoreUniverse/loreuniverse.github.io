@@ -186,8 +186,10 @@ Chapter prose supports a custom link syntax processed by Eleventy at build time:
 ```
 
 **Examples:**
-- `{character|aldren|Aldren}` — links to the character entry with slug `aldren`, displays as "Aldren"
-- `{location|the-shattered-reach|the Shattered Reach}` — links to a location entry
+- `{characters|aldren|Aldren}` — links to the character entry with slug `aldren`, displays as "Aldren"
+- `{locations|the-shattered-reach|the Shattered Reach}` — links to a location entry
+
+**Category names are plural** — they match the folder names exactly (`characters/`, `locations/`, `factions/`, `lore-traits/`, `mechanics/`, `lore/`) and the regex in `.eleventy.js`'s wiki link transform.
 
 **Visibility toggle:**  
 A site-wide setting in `src/_data/config.js` controls whether these render as visible hyperlinks or unstyled plain text. When invisible, the link exists in the HTML but has no visual indicator (no underline, no color change). The reader cannot tell the word is linked unless they hover or inspect.
@@ -300,6 +302,9 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 
 - [ ] Whether to implement per-reader wiki link toggle (button on page) in addition to site-wide toggle — deferred until after initial build
 - [ ] Visual design and theme — explicitly deferred; do not design yet
+- [ ] Patreon link vs. custom membership / donation system — `users.tier` reserved in foundation spec; final choice deferred
+- [ ] Account deletion policy (treatment of comments/ratings/wiki revisions when a user deletes account) — schema supports both retention and removal; final policy deferred to relevant feature specs
+- [ ] Avatar storage strategy (Gravatar / R2 upload / user-provided URL) — `users.image` column exists; source deferred to first feature that wants avatars
 
 ---
 
@@ -315,7 +320,7 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 ---
 
 ## 9. Working Directory
-- All work for this project will be done in `C:\Users\timmy\Desktop\LoreUniverse\lorekeeper`
+- All work for this project will be done in `C:\Users\timmy\Desktop\LoreUniverse`
 
 ---
 
@@ -343,7 +348,7 @@ Small, well-scoped items to add once content density justifies them:
 - Do NOT copy-paste the existing wiki link transform into other modules with hardcoded paths. When the second cross-module link target appears, that is the trigger to generalize.
 
 ### Authoring tooling
-- **Automated chapter reference linker (Claude skill).** A skill that parses a chapter file's prose and automatically rewrites references to known wiki entities into the `{category|slug|display}` syntax — e.g., spotting a character's name in narration and wrapping it as `{character|aldren|Aldren}`. Acknowledged as ambitious because it requires real judgment:
+- **Automated chapter reference linker (Claude skill).** A skill that parses a chapter file's prose and automatically rewrites references to known wiki entities into the `{category|slug|display}` syntax — e.g., spotting a character's name in narration and wrapping it as `{characters|aldren|Aldren}`. Acknowledged as ambitious because it requires real judgment:
   - **Disambiguation** — "Mark" as a name vs. as a verb; common words that collide with character names.
   - **Linking policy** — link every mention, first mention per chapter, first per scene, or first per section? Probably configurable.
   - **Aliases and partial names** — characters referred to by nickname, title, or last name only need to resolve to the same entry.
@@ -362,3 +367,95 @@ The module structure buries wiki content two levels deep. Current landing pages 
 - **Homepage:** currently has three section cards (Novels, Start reading, Browse wiki). Should grow into featured-content tiles — latest chapter, featured character, recent wiki entries — pulled dynamically from collections.
 - **Novels landing page:** has a working latest-chapter preview. Should add popular wiki entries, content stats ("47 characters, 12 factions"), and visual previews so visitors can scan what is available.
 - Both pages contain comments marking the static destinations that should be replaced with dynamic content.
+
+---
+
+## 11. Foundational Backend Architecture (Planned — NOT yet executed)
+
+A focused architecture session on 2026-05-22 produced a complete spec and four implementation plans for adding a full backend to Lore Universe. **None of this has been executed against the codebase yet** — the existing static site continues to run unchanged. The plans should be reviewed and executed sequentially (A → B → C → D), each producing working, testable software.
+
+### Documents
+
+- **Spec:** `docs/superpowers/specs/2026-05-22-foundational-backend-architecture-design.md` — the canonical architecture reference. Read this first.
+- **Plan A:** `docs/superpowers/plans/2026-05-22-foundation-a-monorepo-restructure-and-backend-skeleton.md` — monorepo restructure, library URL rename, Wiki promoted to top-level module, Fastify skeleton on Fly.
+- **Plan B:** `docs/superpowers/plans/2026-05-22-foundation-b-database-auth-email.md` — Postgres (Neon), Drizzle, Better Auth, Resend, email-verified auth flows.
+- **Plan C:** `docs/superpowers/plans/2026-05-22-foundation-c-permissions-tokens-audit.md` — role/permission middleware, API tokens, audit log, ban/grant admin endpoints.
+- **Plan D:** `docs/superpowers/plans/2026-05-22-foundation-d-static-integration-and-claude.md` — books/chapters/wiki tables, Claude autolink endpoint, GitHub `repository_dispatch` rebuild flow, Eleventy build-time wiki fetch.
+
+### Resulting tech stack (after all four plans execute)
+
+| Layer | Choice |
+|---|---|
+| Static site | Eleventy (existing) on GitHub Pages |
+| Backend | Fastify + TypeScript, Docker container on Fly.io |
+| Database | Postgres on Neon (managed) |
+| ORM | Drizzle |
+| Auth | Better Auth (email+password day one; social-ready) |
+| Email | Resend (free tier from launch) |
+| Server-side AI | Anthropic SDK (admin endpoints only) |
+| Frontend dynamic | Alpine.js + vanilla default; React islands (Vite-built) for complex UIs |
+| File storage (future) | Cloudflare R2 |
+| Monorepo layout | `frontend/`, `backend/`, `shared/`, `scripts/` at root |
+
+### Naming conventions established
+
+- **Module** (user-facing) — top-level website section with its own URL namespace: Library at `/library/`, Wiki at `/wiki/`, future Art/Games/Discussion.
+- **Feature** (internal backend) — code unit at `backend/src/features/<name>/`, owns its tables.
+- **Lorekeeper / Library naming convention** — the first module is called **Library** externally (URLs, nav labels, page titles) but retains the identifier `lorekeeper` internally (file paths like `src/lorekeeper/`, data keys like `site.modules.lorekeeper`, code variables). This split preserves the legacy identifier without disturbing the user-facing rename.
+
+### Structural changes Plan A applies to the current code
+
+- Move all current top-level files into a new `frontend/` subfolder.
+- Promote Wiki to a top-level module: move `frontend/src/lorekeeper/wiki/` → `frontend/src/wiki/`.
+- Library module (`src/lorekeeper/`) now contains only `index.md` and `books/`.
+- URLs: `/lorekeeper/*` → `/library/*` (with redirect stubs from the old URLs to the new ones).
+- Add `backend/`, `shared/` siblings of `frontend/`.
+- Optional final step: rename local repo checkout folder from `lorekeeper/` to `loreuniverse/`.
+
+### Architectural principles (non-negotiables)
+
+These flow into every future feature spec automatically:
+
+1. No feature reads or writes another feature's tables directly — cross-feature data access goes through service methods.
+2. Secondary side-effects (audit, email, webhooks, cache, rebuild triggers) wrap in try/catch + logging; they never propagate failure to the primary operation.
+3. Every external dependency call uses timeout + retry + circuit breaker.
+4. Frontend React islands wrap in error boundaries.
+5. UUIDs for primary keys on our tables; text IDs (Better Auth-generated) for `users`. Every FK to users is text.
+6. All tables have `created_at`; mutable tables have `updated_at`. Timestamps are `timestamptz`.
+7. Secrets never enter the repo. All config is env vars.
+8. Migrations are reversible where feasible.
+9. Eleventy stays the static site builder; wiki content is fetched at build time, user-specific data is hydrated client-side.
+10. Authorization always evaluates against the user's current role; token prefixes (`lore_admin_`, `lore_moderator_`) are identification only.
+
+### Sub-project roadmap (post-foundation)
+
+After Plans A–D are merged, feature specs can be written and built independently. Each is its own brainstorm → spec → plan → execution cycle.
+
+1. Accounts UI + reading progress + bookmarks + favorites
+2. Spoiler-aware wiki visibility logic
+3. Comments (sentence-level, threaded, moderated, GIF support)
+4. Editable wiki module (user-facing wiki editor UX)
+5. Book reviews + ratings + per-book landing pages + external commerce links
+6. Patreon link vs. custom membership/donation decision and implementation
+7. Future modules: Discussion forum, Art module, Games module
+
+### Cost picture during foundation buildout
+
+| Layer | Service | Cost during buildout |
+|---|---|---|
+| Static hosting | GitHub Pages | $0 |
+| Backend hosting | Fly.io scale-to-zero | ~$0.20/mo (rootfs storage only; first months covered by trial credit) |
+| Database | Neon free tier | $0 |
+| Email | Resend free tier (3,000/mo) | $0 |
+| Domain | Deferred until public launch | $0 (then ~$10/yr) |
+| Claude API | Pay-per-use; admin endpoints only | A few $ / month at most |
+
+Effectively under $1/month indefinitely. The Fly trial credit covers the first months of even the small rootfs charge; after that, ~$0.20/mo. The first meaningful dollar happens when you commit to one of: an always-warm backend (~$2-4/mo by flipping `min_machines_running` to 1), a domain (~$10/yr), or growing past Resend's 3,000-emails/mo or Neon's 0.5GB storage free tiers.
+
+**Cold start trade-off:** scale-to-zero means the first request after ~5 minutes of idle pays a ~2-4s cold start. Tolerable during dogfooding. Revisit when public traffic warrants always-warm.
+
+### Next session
+
+1. Review the four plans (and the spec if anything is unclear).
+2. Decide whether to execute Plan A inline (in the same Claude session) or via subagent-driven development (a fresh subagent per task).
+3. Start executing Plan A; it should ship with backend on Fly returning `/health` and the static site URLs renamed.
