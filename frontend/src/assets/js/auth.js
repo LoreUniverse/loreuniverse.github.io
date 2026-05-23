@@ -59,10 +59,16 @@ function clearCachedSession() {
 export async function getSession() {
   const cached = getCachedSession();
   if (cached !== null) return cached;
-  const { data } = await authClient.getSession();
-  const session = data ?? null;
-  setCachedSession(session);
-  return session;
+  try {
+    const { data } = await authClient.getSession();
+    const session = data ?? null;
+    setCachedSession(session);
+    return session;
+  } catch {
+    // Network error or CORS failure — treat as no session so the nav
+    // button still appears in logged-out state rather than staying hidden.
+    return null;
+  }
 }
 
 /**
@@ -161,6 +167,11 @@ function updateNav(session) {
 // Boot: check session on every page load, update nav
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
-  const session = await getSession();
-  updateNav(session);
+  try {
+    const session = await getSession();
+    updateNav(session);
+  } catch {
+    // Fallback: always reveal the nav button in logged-out state.
+    updateNav(null);
+  }
 });
