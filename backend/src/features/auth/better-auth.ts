@@ -78,11 +78,14 @@ ${url}`,
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
     },
+    // Cross-origin deployment: the frontend (loreuniverse.github.io) and API
+    // (loreuniverse-api.fly.dev) are on different domains. Browsers require
+    // SameSite=None; Secure for cookies to be sent cross-site.
     ...(isSecure
       ? {
           advanced: {
             defaultCookieAttributes: {
-              sameSite: 'none' as 'none',
+              sameSite: 'none',
               secure: true,
             },
           },
