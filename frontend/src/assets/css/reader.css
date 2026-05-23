@@ -472,3 +472,277 @@ h3 {
     --reading-max-width: 92vw;
   }
 }
+
+/* -----------------------------------------------------------------
+   Account nav button (rightmost, JS-driven)
+   ----------------------------------------------------------------- */
+.nav__item--account {
+  margin-left: auto;
+}
+
+.nav__account-btn {
+  background: none;
+  border: 1px solid var(--clr-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--clr-text);
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.nav__account-btn:hover {
+  border-color: var(--clr-accent);
+  color: var(--clr-accent);
+}
+
+/* Divider row inside account dropdown */
+.nav__subitem--divider {
+  border-top: 1px solid var(--clr-border);
+  margin: 0.25rem 0;
+  padding: 0;
+}
+
+/* Sign-out button styled to look like a nav link */
+.nav__sublink--btn {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 1rem;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--clr-text);
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.nav__sublink--btn:hover {
+  background-color: var(--clr-border);
+  color: var(--clr-accent);
+}
+
+/* -----------------------------------------------------------------
+   Shared form primitives (used on /account/ and future pages)
+   ----------------------------------------------------------------- */
+.form-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--clr-text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 0.375rem;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--clr-accent);
+}
+
+.form-error {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: #c0392b;
+  margin-top: 0.5rem;
+  min-height: 1.2em;
+}
+
+.form-success {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1.25rem 0 0.5rem;
+  color: var(--clr-text);
+}
+
+/* Primary action button (full-width, accent fill) */
+.btn-primary {
+  display: block;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.6rem 1rem;
+  background: var(--clr-accent);
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-primary:hover  { background: var(--clr-accent-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Secondary action button (outline) */
+.btn-secondary {
+  padding: 0.5rem 1.25rem;
+  background: none;
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: 0.375rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--clr-accent);
+  color: var(--clr-accent);
+}
+
+/* -----------------------------------------------------------------
+   Tab strip (login/register page)
+   ----------------------------------------------------------------- */
+.tab-strip {
+  display: flex;
+  border-bottom: 2px solid var(--clr-border);
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  padding: 0.5rem 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--clr-text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn[aria-selected="true"] {
+  color: var(--clr-accent);
+  border-bottom-color: var(--clr-accent);
+}
+
+.tab-panel[hidden] { display: none; }
+
+/* -----------------------------------------------------------------
+   Auth page layout (/account/)
+   ----------------------------------------------------------------- */
+.auth-page {
+  max-width: 28rem;
+  margin: 3rem auto;
+}
+
+.auth-page h1 {
+  font-family: var(--font-ui);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* -----------------------------------------------------------------
+   Profile page layout (/account/profile/)
+   ----------------------------------------------------------------- */
+.profile-page {
+  max-width: 32rem;
+  margin: 3rem auto;
+}
+
+.profile-page h1 {
+  font-family: var(--font-ui);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.profile-field {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--clr-border);
+}
+
+.profile-field:last-of-type { border-bottom: none; }
+
+.profile-label {
+  min-width: 4rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--clr-text-muted);
+}
+
+.profile-value {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--clr-text);
+}
+
+/* -----------------------------------------------------------------
+   Badges (role / tier)
+   ----------------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* admin badge: purple tint (matches accent) */
+.badge--admin {
+  background: #ede8f7;
+  color: #4e3888;
+}
+
+[data-theme="dark"] .badge--admin {
+  background: #2e2848;
+  color: #c0a0e0;
+}
+
+/* user / free badges: muted neutral */
+.badge--user,
+.badge--free {
+  background: var(--clr-ctrl-bg);
+  border: 1px solid var(--clr-border);
+  color: var(--clr-text-muted);
+}
