@@ -370,9 +370,9 @@ The module structure buries wiki content two levels deep. Current landing pages 
 
 ---
 
-## 11. Foundational Backend Architecture (Planned — NOT yet executed)
+## 11. Foundational Backend Architecture
 
-A focused architecture session on 2026-05-22 produced a complete spec and four implementation plans for adding a full backend to Lore Universe. **None of this has been executed against the codebase yet** — the existing static site continues to run unchanged. The plans should be reviewed and executed sequentially (A → B → C → D), each producing working, testable software.
+A focused architecture session on 2026-05-22 produced a complete spec and four implementation plans for adding a full backend to Lore Universe. **Plan A is currently mid-execution** via the `superpowers:subagent-driven-development` workflow. Plans B–D are written and ready, awaiting Plan A's completion + merge before they execute sequentially.
 
 ### Documents
 
@@ -454,8 +454,85 @@ Effectively under $1/month indefinitely. The Fly trial credit covers the first m
 
 **Cold start trade-off:** scale-to-zero means the first request after ~5 minutes of idle pays a ~2-4s cold start. Tolerable during dogfooding. Revisit when public traffic warrants always-warm.
 
-### Next session
+### Plan A execution progress
 
-1. Review the four plans (and the spec if anything is unclear).
-2. Decide whether to execute Plan A inline (in the same Claude session) or via subagent-driven development (a fresh subagent per task).
-3. Start executing Plan A; it should ship with backend on Fly returning `/health` and the static site URLs renamed.
+Execution began 2026-05-22 (after the planning session) using the `superpowers:subagent-driven-development` workflow — fresh subagent per task, with two-stage review (spec compliance + code quality) after each task.
+
+**Execution environment:**
+- Worktree path: `C:\Users\timmy\Desktop\LoreUniverse\lorekeeper\.claude\worktrees\foundation-a-monorepo-restructure`
+- Branch: `worktree-foundation-a-monorepo-restructure` — the harness's `EnterWorktree` tool added the `worktree-` prefix automatically; Plan A's documentation says the branch should be `foundation-a-monorepo-restructure` (no prefix). The actual branch has the prefix. This is a cosmetic mismatch only — the PR step at Task 22 needs to push the prefixed branch name. Either rename the branch before pushing or use the prefixed name in `gh pr create`.
+- The doc commit (`a3d2d11` on main) bringing the spec + four plans was committed before the worktree was created; the worktree was then fast-forwarded to include it.
+
+**Tasks completed (commits in chronological order):**
+
+| Task | Commit | Description |
+|---|---|---|
+| 1 | (worktree setup) | Branch created via `EnterWorktree`; clean working tree; baseline Eleventy build verified |
+| 2 | `a2c9b6a` | Updated `.gitignore` for monorepo paths |
+| 3 | `24934e0` | Moved Eleventy site into `frontend/` subfolder; added `build`/`start`/`debug` npm scripts |
+| 4 | `f318596` | Renamed `.github/workflows/deploy.yml` → `deploy-site.yml`; updated paths, added `repository_dispatch` trigger, set concurrency to cancel-in-progress |
+| 5 | (verification only) | Confirmed site still builds from new location; HTTP probes for `/`, `/lorekeeper/*`, `/about/` all return 200 |
+| 6 | `a85d390` | Restructured navigation: "Novels" → "Library", Wiki promoted from Library submenu to its own top-level nav item |
+| 7 | `d023530` | Moved `src/lorekeeper/wiki/` → `src/wiki/` (23 files, recorded as 100% similarity renames); added `lorekeeper.11tydata.js` permalink cascade for Library URLs; updated 6 wiki category index permalinks |
+| 8 | `fced180` | Updated `site.js` (Library + Wiki module data keys), wiki link transform in `.eleventy.js` (now uses `site.modules.wiki.root`), 6 wiki collection globs (point at `src/wiki/`), and 8 additional template/markdown files containing legacy references caught via grep |
+
+After Task 8, build output is fully migrated: `_site/library/...` and `_site/wiki/...` exist; `_site/lorekeeper/` does not. No `"/lorekeeper/` or `"/library/wiki/` URLs remain anywhere in the build.
+
+**Tasks remaining: 9–23 (15 tasks).**
+
+| Task | Status | Description |
+|---|---|---|
+| 9 | not started | Add redirect stubs from `/lorekeeper/*` to new URLs |
+| 10 | not started | Scaffold `backend/` directory (Fastify + TypeScript + Vitest) |
+| 11 | not started | Set up Vitest configuration |
+| 12 | not started | Write failing health endpoint test (TDD red) |
+| 13 | not started | Implement health endpoint (TDD green) |
+| 14 | not started | Create Fastify server entry point |
+| 15 | not started | Add Dockerfile (multi-stage) |
+| 16 | not started | `flyctl launch --no-deploy`; replace generated `fly.toml` with scale-to-zero config |
+| 17 | not started | Deploy backend to Fly manually; verify `/health` |
+| 18 | not started | Add `deploy-backend.yml` workflow; generate Fly deploy token; add as GitHub repo secret |
+| 19 | not started | Create `shared/` workspace placeholder; link as dep in backend |
+| 20 | not started | Rewrite root `README.md` as monorepo overview |
+| 21 | not started | Update this `PROJECT_BRIEFING.md` (Section 3 folder tree, Section 5 conventions, Section 6 current state rows, Section 9 working dir, Section 10 roadmap) |
+| 22 | not started | Final E2E verification; push branch; open PR; merge; verify production |
+| 23 | not started (optional) | Rename local checkout folder from `lorekeeper/` to `loreuniverse/` |
+
+**Known gotchas encountered so far:**
+- **Windows `git mv` permission denied:** On Task 7, `git mv` for the wiki folder failed with "Permission denied" inside the worktree. The implementer used `robocopy` + `git rm` as a workaround. Git still detected all 23 files as 100% similarity renames in the final commit. The same workaround may be needed for future `git mv` operations on Windows. (This is a known Windows + git worktree quirk, not an issue with the plans.)
+- **Subagent reviewer false positives:** Two reviewers gave incorrect verdicts that required overriding:
+  - Task 3 spec reviewer flagged `"@11ty/eleventy": "^3.1.5"` as a "version mismatch" — caused by a typo in the spec-reviewer prompt (`^11.1.5` instead of `^3.1.5`); Eleventy is on 3.x and the package.json is correct.
+  - Task 7 code-quality reviewer flagged the wiki category permalinks as still being `/lorekeeper/wiki/<cat>/` — direct file inspection confirmed they were updated to `/wiki/<cat>/`. The reviewer misread the files.
+- **Task 8 code-quality review interrupted:** The previous controller session hit the Anthropic session reset limit during Task 8's code-quality review. The implementer reported DONE and the spec reviewer confirmed ✅. The code-quality review was dispatched but the response was truncated. Task 8 is functionally complete (build output verified clean, all stale references migrated, post-build grep returns no legacy URLs), so it's safe to proceed without re-running that specific review — but you may want to dispatch it again for completeness when resuming.
+- **Eleventy permalink cascade requires `.js` not `.json`:** the original plan suggested `lorekeeper.11tydata.json` with a Nunjucks template string; the pre-flight pass corrected this to `lorekeeper.11tydata.js` with a function. The function-based version is what's in the committed plan and what Task 7 implemented.
+- **Bash `cd` doesn't always persist across calls in the harness:** during execution, the controller's Bash working directory occasionally reverted to a parent directory. Defensive workaround: always prefix file operations with `cd "C:/Users/timmy/Desktop/LoreUniverse/lorekeeper/.claude/worktrees/foundation-a-monorepo-restructure" && ...` rather than relying on persistent cwd.
+
+### Resuming Plan A execution
+
+The next controller session should pick up at **Task 9** (redirect stubs). To resume:
+
+1. **Restore context.** Read the full spec at `docs/superpowers/specs/2026-05-22-foundational-backend-architecture-design.md` and Plan A at `docs/superpowers/plans/2026-05-22-foundation-a-monorepo-restructure-and-backend-skeleton.md`. Both are in the worktree already.
+
+2. **Invoke the subagent-driven-development skill** (`superpowers:subagent-driven-development`) — the workflow that was already in use.
+
+3. **For each remaining task (9 through 23):**
+   - Read the task's full text from Plan A.
+   - Dispatch a fresh implementer subagent (general-purpose agent type, `haiku` for mechanical tasks like file edits and `sonnet` for substantive multi-file tasks).
+   - Provide the working directory (worktree path), the actual branch name (`worktree-foundation-a-monorepo-restructure`), and full task text inline (do not have the subagent read the plan file).
+   - Handle questions, then dispatch a spec compliance reviewer.
+   - Then dispatch a code quality reviewer (only after spec compliance ✅).
+   - Mark complete and move to the next task without pausing.
+
+4. **Specific operational tasks** that need user involvement (these are inline within the listed tasks but worth flagging):
+   - **Task 16** (`flyctl launch`): interactive prompts — the subagent can guide, but you (the user) provide answers to the launch wizard. The plan documents the expected answers.
+   - **Task 17** (first Fly deploy): `flyctl deploy --remote-only` should work non-interactively once Fly is authenticated.
+   - **Task 18** (Fly deploy token + GitHub secret): the token generation is CLI (`flyctl tokens create deploy ...`); adding the secret to GitHub requires either `gh secret set FLY_API_TOKEN --body "<token>"` (works if `gh` is authenticated) or the GitHub web UI.
+   - **Task 22** (open PR + merge): `gh pr create` works if authenticated; merging from the GitHub UI is typical. The branch name to push and PR from is `worktree-foundation-a-monorepo-restructure` (with the prefix).
+
+5. **After Task 22 merges**, the user has decisions:
+   - Run Task 23 (optional local folder rename) — manual filesystem op.
+   - Move to Plan B (database + auth + email) — start a new brainstorm-or-execute cycle.
+
+### Original "Next session" plan (kept for reference)
+
+(Plan A is now in progress, so the original "next session" guidance is obsolete. Resuming guidance above supersedes it.)
