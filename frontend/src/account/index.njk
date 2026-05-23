@@ -1,0 +1,140 @@
+---
+layout: base.njk
+title: Account
+---
+
+<div class="auth-page">
+  <h1>Account</h1>
+
+  <div class="tab-strip" role="tablist">
+    <button
+      class="tab-btn"
+      id="tab-signin"
+      role="tab"
+      aria-selected="true"
+      aria-controls="panel-signin"
+      type="button"
+    >Sign in</button>
+    <button
+      class="tab-btn"
+      id="tab-register"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-register"
+      type="button"
+    >Create account</button>
+  </div>
+
+  {# Sign-in panel #}
+  <div id="panel-signin" class="tab-panel" role="tabpanel" aria-labelledby="tab-signin">
+    <div class="form-card">
+      <form id="signin-form" novalidate>
+        <div class="form-group">
+          <label for="signin-email">Email</label>
+          <input id="signin-email" type="email" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="signin-password">Password</label>
+          <input id="signin-password" type="password" autocomplete="current-password" required>
+        </div>
+        <p class="form-error" id="signin-error" role="alert"></p>
+        <button class="btn-primary" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+
+  {# Register panel #}
+  <div id="panel-register" class="tab-panel" role="tabpanel" aria-labelledby="tab-register" hidden>
+    <div class="form-card">
+      <form id="register-form" novalidate>
+        <div class="form-group">
+          <label for="reg-name">Name</label>
+          <input id="reg-name" type="text" autocomplete="name" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input id="reg-email" type="email" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" type="password" autocomplete="new-password" required>
+        </div>
+        <p class="form-error" id="register-error" role="alert"></p>
+        <button class="btn-primary" type="submit">Create account</button>
+      </form>
+      <p class="form-success" id="register-success" hidden></p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { signIn, signUp } from '/assets/js/auth.js';
+
+// ---------------------------------------------------------------------------
+// Tab switching
+// ---------------------------------------------------------------------------
+const tabs   = document.querySelectorAll('[role="tab"]');
+const panels = document.querySelectorAll('[role="tabpanel"]');
+
+function activateTab(tabId) {
+  tabs.forEach(t => t.setAttribute('aria-selected', String(t.id === tabId)));
+  panels.forEach(p => { p.hidden = p.getAttribute('aria-labelledby') !== tabId; });
+}
+
+tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab.id)));
+
+// Pre-select tab from ?tab= query param
+const params = new URLSearchParams(location.search);
+if (params.get('tab') === 'register') activateTab('tab-register');
+
+// Where to send the user after successful sign-in
+const redirectTo = params.get('redirect') || '/';
+
+// ---------------------------------------------------------------------------
+// Sign-in form
+// ---------------------------------------------------------------------------
+document.getElementById('signin-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = document.getElementById('signin-error');
+  errEl.textContent = '';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+
+  const email    = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+
+  const { error } = await signIn(email, password);
+  if (error) {
+    errEl.textContent = error.message || 'Sign-in failed. Check your email and password.';
+    btn.disabled = false;
+  } else {
+    location.href = redirectTo;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Register form
+// ---------------------------------------------------------------------------
+document.getElementById('register-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = document.getElementById('register-error');
+  errEl.textContent = '';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  const { error } = await signUp(name, email, password);
+  if (error) {
+    errEl.textContent = error.message || 'Registration failed. Please try again.';
+    btn.disabled = false;
+  } else {
+    document.getElementById('register-form').hidden = true;
+    const successEl = document.getElementById('register-success');
+    successEl.hidden = false;
+    successEl.textContent = 'Check your email to verify your account.';
+  }
+});
+</script>

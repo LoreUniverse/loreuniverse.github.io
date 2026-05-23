@@ -34,3 +34,6 @@ coverage/
 # Obsidian staging (preserved from before)
 scripts/staging/
 scripts/converted/
+
+# Git worktrees (managed by Claude Code)
+.claude/worktrees/
