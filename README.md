@@ -1,27 +1,34 @@
 # Lore Universe
 
-A personal creative writing website hosting a serialized sci-fi/fantasy novel and a companion wiki for its universe. The wiki serves as both a standalone reference and an in-line reading aid, with links embedded in chapter prose that connect readers to relevant entries on characters, locations, factions, and lore.
+Monorepo for the Lore Universe website — a personal creative-writing platform hosting serialized novels and a companion wiki.
 
-The long-term vision is multiple novels set in the same universe, all supported by a shared, ever-growing wiki. Even longer-term vision is video games, tabletop RPGs, board games, animations, and more creative media set in the same universe.
+**Live site:** https://loreuniverse.github.io/
+**API:** https://loreuniverse-api.fly.dev/
 
-Live site: [loreuniverse.github.io](https://loreuniverse.github.io)
+## Layout
 
----
+- `frontend/` — Eleventy static site. Renders novels, wiki, and other modules.
+- `backend/` — Fastify TypeScript API. Handles auth, dynamic data, admin endpoints.
+- `shared/` — TypeScript types shared between backend and (eventually) frontend.
+- `scripts/` — Authoring tooling (Obsidian migration, future scripts).
+- `docs/` — Architecture specs and implementation plans.
 
-## Tech Stack
+## Local development
 
-| Component | Choice |
-|---|---|
-| Static site generator | [Eleventy (11ty)](https://www.11ty.dev/) v3.1.5 |
-| Templating | Nunjucks (.njk) |
-| Content format | Markdown with YAML front matter |
-| Deployment | GitHub Pages via GitHub Actions |
-| Node version | v24 |
+Prerequisites: Node 24+, Docker.
 
----
+```bash
+# Static site
+cd frontend
+npm install
+npm start                # Eleventy dev server on :8080
 
-## Authorship
+# Backend (separate terminal)
+cd backend
+npm install
+npm run dev              # Fastify on :3000
+```
 
-**Creative author:** All story content, worldbuilding, characters, lore, and every other creative aspect of this project are written by the owner. No AI tools are used in the creative process.
+## Architecture
 
-**Engineering:** The technical implementation of this site — the Eleventy configuration, Nunjucks templates, GitHub Actions workflow, and supporting scripts — was built with [Claude](https://claude.ai) (Anthropic) acting as an AI pair programmer. Claude handles code generation, debugging, and architectural decisions while the author drives requirements and reviews all output.
+See `docs/superpowers/specs/2026-05-22-foundational-backend-architecture-design.md` for the full architecture.
