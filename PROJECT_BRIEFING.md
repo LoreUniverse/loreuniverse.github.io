@@ -34,64 +34,60 @@
 
 ## 3. Folder Structure
 
-The site is organized into **modules** living under `src/`. Each module gets its own URL namespace (e.g. `/lorekeeper/` for the Novels module). The site-wide `base.njk` provides the global navbar and chrome; module-specific links live on per-module landing pages.
+The site is organized into **modules** living under `frontend/src/`. Each module gets its own URL namespace. The site-wide `base.njk` provides the global navbar and chrome.
+
+The repo is now a **monorepo** with three packages at the root:
 
 ```
-lorekeeper/
-├── src/
-│   ├── _data/                  # Global data — auto-exposed as template variables
-│   │   ├── config.js           # wikiLinksVisible toggle (site-wide)
-│   │   ├── site.js             # Single source of truth for module URL paths
-│   │   └── navigation.js       # Navbar items (label, href, optional submenu)
-│   ├── _includes/              # Nunjucks layout templates
-│   │   ├── base.njk            # Root layout — nav, dropdown JS/CSS, footer
-│   │   ├── wiki-entry.njk      # Generic wiki layout (currently unused)
-│   │   ├── character.njk       # Per-category wiki layouts
-│   │   ├── lore-trait.njk
-│   │   ├── mechanic.njk
-│   │   ├── location.njk
-│   │   ├── faction.njk
-│   │   ├── lore.njk
-│   │   └── chapter.njk         # Novel chapter pages
-│   ├── lorekeeper/             # Novels module — /lorekeeper/
-│   │   ├── index.md            # Novels module landing page
-│   │   ├── books/              # Books submodule — /lorekeeper/books/
-│   │   │   ├── index.md        # Books landing — lists all books
-│   │   │   └── book1/
-│   │   │       └── chapters/   # /lorekeeper/books/book1/chapters/
-│   │   │           ├── index.md
-│   │   │           ├── chapters.11tydata.json
-│   │   │           └── *.md    # One file per chapter
-│   │   └── wiki/               # Wiki submodule — /lorekeeper/wiki/
-│   │       ├── index.md        # Wiki landing
-│   │       ├── characters/     # One .md file per character
-│   │       ├── lore-traits/
-│   │       ├── mechanics/
-│   │       ├── locations/
-│   │       ├── factions/
-│   │       └── lore/
-│   ├── about/
-│   │   └── index.md            # /about/
-│   └── index.md                # Site hub /
+loreuniverse/                        # repo root
+├── frontend/                        # Eleventy static site
+│   ├── .eleventy.js
+│   ├── package.json
+│   └── src/
+│       ├── _data/
+│       │   ├── site.js              # single source of truth for module URL paths
+│       │   ├── navigation.js        # navbar items
+│       │   └── config.js
+│       ├── _includes/
+│       │   ├── base.njk
+│       │   ├── redirect.njk         # meta-refresh redirect template
+│       │   └── (per-category wiki layouts)
+│       ├── lorekeeper/              # LIBRARY module (internal name kept)
+│       │   ├── index.md             # serves at /library/
+│       │   └── books/
+│       ├── wiki/                    # WIKI module (top-level)
+│       │   ├── index.md             # serves at /wiki/
+│       │   ├── characters/
+│       │   ├── lore-traits/
+│       │   ├── mechanics/
+│       │   ├── locations/
+│       │   ├── factions/
+│       │   └── lore/
+│       ├── redirects/               # legacy /lorekeeper/* → new URLs
+│       ├── about/
+│       └── index.md
+├── backend/                         # Fastify TypeScript API
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vitest.config.ts
+│   ├── Dockerfile
+│   ├── fly.toml
+│   └── src/
+│       ├── server.ts
+│       └── routes/
+│           ├── health.ts
+│           └── health.test.ts
+├── shared/                          # Shared TypeScript types
+│   ├── package.json
+│   └── src/
+│       └── index.ts
 ├── scripts/
-│   ├── create-structure.js     # One-time scaffold script (already run)
-│   ├── migrate-obsidian.js     # Converts Obsidian notes to site format
-│   ├── staging/                # Drop Obsidian .md files here before migrating
-│   │   ├── characters/
-│   │   ├── locations/
-│   │   ├── factions/
-│   │   ├── lore-traits/
-│   │   ├── mechanics/
-│   │   └── lore/
-│   ├── converted/              # Output of migrate-obsidian.js (gitignored)
-│   └── README.md               # Script usage instructions
-├── .eleventy.js                # Eleventy configuration
+├── docs/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # GitHub Actions deployment workflow
-├── .gitignore
-├── package.json
-└── PROJECT_BRIEFING.md         # This file
+│       ├── deploy-site.yml
+│       └── deploy-backend.yml
+└── PROJECT_BRIEFING.md
 ```
 
 ---
@@ -245,6 +241,9 @@ The script builds a lookup index from both staging files and already-migrated `s
 - Template files: hyphen-separated `.njk` files in `_includes/`
 - Category collection names in `.eleventy.js`: camelCase (e.g., `loreTraits`, `characters`)
 
+### Lorekeeper / Library Naming Convention
+The first module of the website is named **Library** externally (URLs, navigation labels, page titles, body text) but retains the identifier `lorekeeper` internally (file paths like `frontend/src/lorekeeper/`, data keys like `site.modules.lorekeeper`, code variables). When adding new features, use `library` for any user-facing text and `lorekeeper` for any code identifier or path.
+
 ### Global Data Files (`src/_data/`)
 Eleventy automatically exposes every file in `src/_data/` as a template variable named after the file. Two patterns to follow:
 
@@ -289,6 +288,12 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 | Book 1 chapters | ⬜ Test chapter only — real prose not started |
 | Visual design / theme | ⬜ Not started (deferred) |
 | Extract inline CSS/JS in `base.njk` to `/assets/` | ⬜ Pending — comes with design phase |
+| Monorepo restructure | ✅ Done (Foundation Plan A) |
+| Library URL rename (`/lorekeeper/` → `/library/`) | ✅ Done (Foundation Plan A) |
+| Wiki promoted to top-level module (`/wiki/*`) | ✅ Done (Foundation Plan A) |
+| Backend skeleton (Fastify + TypeScript + Docker) | ✅ Done (Foundation Plan A) |
+| Backend deployed to Fly | ✅ Done (Foundation Plan A) |
+| Backend deploy workflow | ✅ Done (Foundation Plan A) |
 
 **Next planned step:** Continue populating the wiki with real entries via `scripts/migrate-obsidian.js`. After that, replace the test chapter with real Book 1 prose. Visual design is the next major phase once content density justifies it.
 
@@ -320,7 +325,7 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 ---
 
 ## 9. Working Directory
-- All work for this project will be done in `C:\Users\timmy\Desktop\LoreUniverse`
+- All work for this project is done in the repo root containing `frontend/`, `backend/`, `shared/`, `scripts/`, `docs/`.
 
 ---
 
@@ -367,6 +372,15 @@ The module structure buries wiki content two levels deep. Current landing pages 
 - **Homepage:** currently has three section cards (Novels, Start reading, Browse wiki). Should grow into featured-content tiles — latest chapter, featured character, recent wiki entries — pulled dynamically from collections.
 - **Novels landing page:** has a working latest-chapter preview. Should add popular wiki entries, content stats ("47 characters, 12 factions"), and visual previews so visitors can scan what is available.
 - Both pages contain comments marking the static destinations that should be replaced with dynamic content.
+
+### Sub-project roadmap
+Foundational backend implementation is split across four plans, executed sequentially:
+- Plan A (this PR): monorepo restructure, library rename, backend skeleton
+- Plan B: database, auth (Better Auth + Resend), email-verified signup/login
+- Plan C: roles, permissions, API tokens, audit log
+- Plan D: static-site/backend integration, Claude autolink endpoint
+
+After Plan D, feature work begins. See `docs/superpowers/specs/2026-05-22-foundational-backend-architecture-design.md` for the foundation spec, and `docs/superpowers/plans/` for the plan documents.
 
 ---
 
