@@ -1,13 +1,36 @@
-# Node dependencies
+# Dependencies
 node_modules/
+**/node_modules/
 
-# Eleventy compiled output
+# Build outputs
 _site/
+frontend/_site/
+backend/dist/
+shared/dist/
 
-# OS files
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# OS
 .DS_Store
 Thumbs.db
 
-# Obsidian migration working folders — personal content, not project code
+# Editor
+.vscode/
+.idea/
+
+# Test/coverage
+coverage/
+**/coverage/
+
+# Obsidian staging (preserved from before)
 scripts/staging/
 scripts/converted/
