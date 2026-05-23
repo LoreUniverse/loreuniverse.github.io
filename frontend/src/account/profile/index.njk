@@ -1,0 +1,67 @@
+---
+layout: base.njk
+title: Profile
+---
+
+<div class="profile-page">
+  <h1>Profile</h1>
+
+  <div class="profile-card" id="profile-card" hidden>
+    <div class="profile-field">
+      <span class="profile-label">Name</span>
+      <span class="profile-value" id="profile-name"></span>
+    </div>
+    <div class="profile-field">
+      <span class="profile-label">Email</span>
+      <span class="profile-value" id="profile-email"></span>
+    </div>
+    <div class="profile-field">
+      <span class="profile-label">Role</span>
+      <span class="profile-value" id="profile-role"></span>
+    </div>
+    <div class="profile-field">
+      <span class="profile-label">Tier</span>
+      <span class="profile-value" id="profile-tier"></span>
+    </div>
+  </div>
+
+  <button class="btn-secondary" id="profile-sign-out-btn" type="button" hidden>Sign out</button>
+</div>
+
+<script type="module">
+import { getSession, signOut } from '/assets/js/auth.js';
+
+(async () => {
+  const session = await getSession();
+
+  // Auth guard — redirect unauthenticated visitors to the sign-in page
+  if (!session) {
+    location.href = '/account/?redirect=/account/profile/';
+    return;
+  }
+
+  const { user } = session;
+
+  // Populate fields
+  document.getElementById('profile-name').textContent  = user.name  || '—';
+  document.getElementById('profile-email').textContent = user.email || '—';
+
+  const role = user.role || 'user';
+  document.getElementById('profile-role').innerHTML =
+    `<span class="badge badge--${role}">${role}</span>`;
+
+  const tier = user.tier || 'free';
+  document.getElementById('profile-tier').innerHTML =
+    `<span class="badge badge--${tier}">${tier}</span>`;
+
+  // Reveal the card and sign-out button once data is ready
+  document.getElementById('profile-card').hidden = false;
+
+  const signOutBtn = document.getElementById('profile-sign-out-btn');
+  signOutBtn.hidden = false;
+  signOutBtn.addEventListener('click', async () => {
+    await signOut();
+    location.href = '/';
+  });
+})();
+</script>
