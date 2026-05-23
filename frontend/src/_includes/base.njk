@@ -87,6 +87,30 @@
             {% endif %}
           </li>
         {% endfor %}
+
+          {#
+            Account button — outside the data loop because its content is JS-driven.
+            Starts hidden (visibility:hidden preserves layout space) and is revealed
+            by auth.js after the session check resolves, preventing any flicker.
+          #}
+          <li class="nav__item nav__item--account" id="nav-account" style="visibility:hidden">
+            <button
+              class="nav__account-btn"
+              id="nav-account-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-account-menu"
+              data-nav-toggle
+            >Account</button>
+            <ul
+              class="nav__submenu"
+              id="nav-account-menu"
+              hidden
+            >
+              <li class="nav__subitem"><a class="nav__sublink" href="/account/">Sign in</a></li>
+              <li class="nav__subitem"><a class="nav__sublink" href="/account/?tab=register">Register</a></li>
+            </ul>
+          </li>
       </ul>
     </nav>
   </header>
@@ -138,6 +162,7 @@
   </script>
 
   <script src="/assets/js/reader.js" defer></script>
+  <script type="module" src="/assets/js/auth.js"></script>
 
 </body>
 </html>
