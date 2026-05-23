@@ -68,9 +68,9 @@ ${url}`,
       additionalFields: {
         role: { type: 'string', defaultValue: 'user', input: false },
         tier: { type: 'string', defaultValue: 'free', input: false },
-        isBanned: { type: 'boolean', defaultValue: false, input: false, fieldName: 'is_banned' },
-        bannedAt: { type: 'date', required: false, input: false, fieldName: 'banned_at' },
-        bannedReason: { type: 'string', required: false, input: false, fieldName: 'banned_reason' },
+        isBanned: { type: 'boolean', defaultValue: false, input: false, fieldName: 'isBanned' },
+        bannedAt: { type: 'date', required: false, input: false, fieldName: 'bannedAt' },
+        bannedReason: { type: 'string', required: false, input: false, fieldName: 'bannedReason' },
       },
     },
     session: {
