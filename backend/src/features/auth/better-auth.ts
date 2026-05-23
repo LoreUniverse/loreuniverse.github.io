@@ -15,6 +15,7 @@ export type AuthConfig = {
 
 export function createAuth(config: AuthConfig) {
   const sender = config.emailSender ?? createEmailSender();
+  const isSecure = config.baseUrl.startsWith('https://');
 
   return betterAuth({
     database: drizzleAdapter(config.db, {
@@ -77,6 +78,16 @@ ${url}`,
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
     },
+    ...(isSecure
+      ? {
+          advanced: {
+            defaultCookieAttributes: {
+              sameSite: 'none' as 'none',
+              secure: true,
+            },
+          },
+        }
+      : {}),
     trustedOrigins: (process.env.ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),
   });
 }
