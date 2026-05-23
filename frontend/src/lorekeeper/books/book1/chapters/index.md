@@ -1,7 +1,6 @@
 ---
 title: Chapters
 layout: base.njk
-permalink: /lorekeeper/books/book1/chapters/
 ---
 
 # Chapters
