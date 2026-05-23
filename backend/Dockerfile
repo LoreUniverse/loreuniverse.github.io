@@ -18,5 +18,6 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --omit=optional && npm cache clean --force
 COPY --from=build /app/dist ./dist
+COPY drizzle ./drizzle
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
