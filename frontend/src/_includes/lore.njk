@@ -1,0 +1,68 @@
+---
+layout: base.njk
+---
+{#
+  lore.njk
+  Layout for Lore wiki entries. Extends base.njk.
+
+  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+    name, category, related_characters, related_locations, related_factions
+#}
+
+<article class="wiki-entry wiki-entry--lore">
+
+  <header class="wiki-entry__header">
+    <h1>{{ name }}</h1>
+    <p class="wiki-entry__category">Lore</p>
+  </header>
+
+  <section class="wiki-entry__meta">
+
+    {% if category %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Category</span>
+      <span class="wiki-entry__value">{{ category }}</span>
+    </div>
+    {% endif %}
+
+    {% if related_characters and related_characters.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Characters</span>
+      <ul class="wiki-entry__list">
+        {% for character in related_characters %}
+        <li><a href="{{ site.modules.wiki.root }}/characters/{{ character }}/">{{ character }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if related_locations and related_locations.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Locations</span>
+      <ul class="wiki-entry__list">
+        {% for location in related_locations %}
+        <li><a href="{{ site.modules.wiki.root }}/locations/{{ location }}/">{{ location }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if related_factions and related_factions.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Factions</span>
+      <ul class="wiki-entry__list">
+        {% for faction in related_factions %}
+        <li><a href="{{ site.modules.wiki.root }}/factions/{{ faction }}/">{{ faction }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </section>
+
+  {# The Markdown body — full description of the lore entry #}
+  <section class="wiki-entry__body">
+    {{ content | safe }}
+  </section>
+
+</article>

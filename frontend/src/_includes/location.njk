@@ -1,0 +1,68 @@
+---
+layout: base.njk
+---
+{#
+  location.njk
+  Layout for Location wiki entries. Extends base.njk.
+
+  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+    name, type, factions, notable_characters, lore
+#}
+
+<article class="wiki-entry wiki-entry--location">
+
+  <header class="wiki-entry__header">
+    <h1>{{ name }}</h1>
+    <p class="wiki-entry__category">Location</p>
+  </header>
+
+  <section class="wiki-entry__meta">
+
+    {% if type %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Type</span>
+      <span class="wiki-entry__value">{{ type }}</span>
+    </div>
+    {% endif %}
+
+    {% if factions and factions.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Factions</span>
+      <ul class="wiki-entry__list">
+        {% for faction in factions %}
+        <li><a href="{{ site.modules.wiki.root }}/factions/{{ faction }}/">{{ faction }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if notable_characters and notable_characters.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Notable Characters</span>
+      <ul class="wiki-entry__list">
+        {% for character in notable_characters %}
+        <li><a href="{{ site.modules.wiki.root }}/characters/{{ character }}/">{{ character }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if lore and lore.length %}
+    <div class="wiki-entry__field">
+      <span class="wiki-entry__label">Related Lore</span>
+      <ul class="wiki-entry__list">
+        {% for entry in lore %}
+        <li><a href="{{ site.modules.wiki.root }}/lore/{{ entry }}/">{{ entry }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </section>
+
+  {# The Markdown body — full description of the location #}
+  <section class="wiki-entry__body">
+    {{ content | safe }}
+  </section>
+
+</article>
