@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import type { ApiErrorEnvelope } from '@loreuniverse/shared';
 import { registerHealthRoute } from './routes/health.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
