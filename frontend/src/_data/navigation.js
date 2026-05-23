@@ -26,14 +26,14 @@
 // =============================================================================
 
 module.exports = [
-  { label: "Home", href: "/" },
+  { label: 'Home', href: '/' },
   {
-    label: "Novels",
-    href:  "/lorekeeper/",
+    label: 'Library',
+    href: '/library/',
     submenu: [
-      { label: "Books", href: "/lorekeeper/books/" },
-      { label: "Wiki",  href: "/lorekeeper/wiki/"  },
-    ],
+      { label: 'Books', href: '/library/books/' }
+    ]
   },
-  { label: "About", href: "/about/" },
+  { label: 'Wiki', href: '/wiki/' },
+  { label: 'About', href: '/about/' }
 ];
