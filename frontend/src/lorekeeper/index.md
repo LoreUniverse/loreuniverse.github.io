@@ -19,7 +19,7 @@ Read the chapters. Currently one book is in progress.
 ### Wiki
 The universe's encyclopedia — characters, locations, factions, lore traits, mechanics, and lore.
 
-[Browse the wiki →]({{ site.modules.lorekeeper.wiki }}/)
+[Browse the wiki →]({{ site.modules.wiki.root }}/)
 
 ---
 

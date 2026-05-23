@@ -32,4 +32,4 @@ Begin with Book 1 of the Lorekeeper series.
 ### Browse the wiki
 Characters, locations, factions, lore, and the systems that govern the universe.
 
-[Open the wiki →]({{ site.modules.lorekeeper.wiki }}/)
+[Open the wiki →]({{ site.modules.wiki.root }}/)

@@ -61,27 +61,27 @@ module.exports = function(eleventyConfig) {
   // front matter fields defined in that entry's .md file.
 
   eleventyConfig.addCollection("characters", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/characters/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/characters/*.md");
   });
 
   eleventyConfig.addCollection("loreTraits", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/lore-traits/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/lore-traits/*.md");
   });
 
   eleventyConfig.addCollection("mechanics", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/mechanics/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/mechanics/*.md");
   });
 
   eleventyConfig.addCollection("locations", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/locations/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/locations/*.md");
   });
 
   eleventyConfig.addCollection("factions", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/factions/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/factions/*.md");
   });
 
   eleventyConfig.addCollection("lore", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/lorekeeper/wiki/lore/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/lore/*.md");
   });
 
   eleventyConfig.addCollection("chapters", function(collectionApi) {
@@ -159,7 +159,7 @@ module.exports = function(eleventyConfig) {
 
     return content.replace(WIKI_LINK_RE, (match, category, slug, display) => {
       if (visible) {
-        return `<a class="wiki-link" href="${site.modules.lorekeeper.wiki}/${category}/${slug}/">${display}</a>`;
+        return `<a class="wiki-link" href="${site.modules.wiki.root}/${category}/${slug}/">${display}</a>`;
       }
       return `<span class="wiki-link wiki-link--hidden">${display}</span>`;
     });
