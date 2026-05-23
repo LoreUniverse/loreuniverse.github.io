@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@loreuniverse/shared": "file:../shared",
+    "better-auth": "^1.6.11",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.0.0",
