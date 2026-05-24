@@ -1,11 +1,11 @@
 /**
- * auth.js — Better Auth browser client
+ * auth.js — Auth client using native fetch
  *
+ * No external dependencies — uses browser fetch with credentials: 'include'.
  * Loaded on every page as <script type="module">.
  * Exports: getSession, signIn, signUp, signOut
  * Side effect: updates the nav Account dropdown on DOMContentLoaded.
  */
-import { createAuthClient } from 'https://esm.sh/better-auth@1.6.11/client';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -14,13 +14,41 @@ const API_BASE     = 'https://loreuniverse-api.fly.dev';
 const CACHE_KEY    = 'lr-session';
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
-const authClient = createAuthClient({ baseURL: API_BASE });
+// ---------------------------------------------------------------------------
+// Low-level fetch helper — always returns { data, error }, never throws
+// ---------------------------------------------------------------------------
+
+async function apiFetch(path, init = {}) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      credentials: 'include',
+      ...init,
+    });
+
+    // 401 = unauthenticated, 204 = no content — both mean "no session"
+    if (res.status === 401 || res.status === 204) {
+      return { data: null, error: null };
+    }
+
+    let body;
+    try { body = await res.json(); } catch { body = null; }
+
+    if (!res.ok) {
+      const message = body?.message || body?.error || `Request failed (${res.status})`;
+      return { data: null, error: { message, status: res.status } };
+    }
+
+    return { data: body ?? null, error: null };
+  } catch {
+    // Network error or CORS block
+    return { data: null, error: { message: 'Network error — please try again.' } };
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Session cache (sessionStorage, 30-second TTL)
 // ---------------------------------------------------------------------------
 
-/** @returns {object|null} cached session object, or null if missing/expired */
 function getCachedSession() {
   try {
     const raw = sessionStorage.getItem(CACHE_KEY);
@@ -36,11 +64,10 @@ function getCachedSession() {
   }
 }
 
-/** @param {object|null} session */
 function setCachedSession(session) {
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ session, ts: Date.now() }));
-  } catch { /* quota exceeded — degrade silently */ }
+  } catch { /* storage quota exceeded — degrade silently */ }
 }
 
 function clearCachedSession() {
@@ -52,63 +79,66 @@ function clearCachedSession() {
 // ---------------------------------------------------------------------------
 
 /**
- * Returns the current session object (from cache or API).
- * Returns null if the user is not signed in.
- * @returns {Promise<object|null>}
+ * Returns the current session object, or null if not signed in.
+ * Caches the result in sessionStorage for 30 seconds.
+ * @returns {Promise<{user: object, session: object}|null>}
  */
 export async function getSession() {
   const cached = getCachedSession();
   if (cached !== null) return cached;
-  try {
-    const { data } = await authClient.getSession();
-    const session = data ?? null;
-    setCachedSession(session);
-    return session;
-  } catch {
-    // Network error or CORS failure — treat as no session so the nav
-    // button still appears in logged-out state rather than staying hidden.
-    return null;
-  }
+
+  const { data } = await apiFetch('/api/auth/get-session');
+  // A valid session always has a user object
+  const session = (data && data.user) ? data : null;
+  setCachedSession(session);
+  return session;
 }
 
 /**
  * Sign in with email + password.
- * Returns the Better Auth result object: { data, error }.
- * Clears the session cache on success.
+ * Returns { data, error } — error.message is safe to show to the user.
  * @param {string} email
  * @param {string} password
- * @returns {Promise<{data: object|null, error: object|null}>}
+ * @returns {Promise<{data: object|null, error: {message: string}|null}>}
  */
 export async function signIn(email, password) {
-  const result = await authClient.signIn.email({ email, password });
+  const result = await apiFetch('/api/auth/sign-in/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
   if (!result.error) clearCachedSession();
   return result;
 }
 
 /**
  * Register a new account.
- * Passes callbackURL so the verification link redirects back to the site.
- * Returns the Better Auth result object: { data, error }.
+ * callbackURL makes the verification link redirect back to the frontend.
+ * Returns { data, error }.
  * @param {string} name
  * @param {string} email
  * @param {string} password
- * @returns {Promise<{data: object|null, error: object|null}>}
+ * @returns {Promise<{data: object|null, error: {message: string}|null}>}
  */
 export async function signUp(name, email, password) {
-  return authClient.signUp.email({
-    name,
-    email,
-    password,
-    callbackURL: 'https://loreuniverse.github.io/',
+  return apiFetch('/api/auth/sign-up/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      callbackURL: 'https://loreuniverse.github.io/',
+    }),
   });
 }
 
 /**
- * Sign out and clear the session cache.
+ * Sign out and clear the local session cache.
  * @returns {Promise<void>}
  */
 export async function signOut() {
-  await authClient.signOut();
+  await apiFetch('/api/auth/sign-out', { method: 'POST' });
   clearCachedSession();
 }
 
@@ -118,7 +148,7 @@ export async function signOut() {
 
 /**
  * Reveals the Account nav button and populates its dropdown
- * based on the current session.
+ * based on the current session. Always called — even on error.
  * @param {object|null} session
  */
 function updateNav(session) {
@@ -128,7 +158,7 @@ function updateNav(session) {
   if (!accountItem || !accountBtn || !accountMenu) return;
 
   if (session) {
-    // Logged-in state: show first name + Profile / Sign out dropdown
+    // Logged-in: show first name + Profile / Sign out
     const firstName = (session.user?.name || 'Account').split(' ')[0];
     accountBtn.textContent = firstName;
     accountMenu.innerHTML = `
@@ -147,7 +177,7 @@ function updateNav(session) {
       location.href = '/';
     });
   } else {
-    // Logged-out state: show Sign in / Register links
+    // Logged-out: show Sign in / Register
     accountBtn.textContent = 'Account';
     accountMenu.innerHTML = `
       <li class="nav__subitem">
@@ -159,19 +189,19 @@ function updateNav(session) {
     `;
   }
 
-  // Reveal the button (was visibility:hidden to prevent FOUC)
+  // Reveal the button — was visibility:hidden to prevent FOUC
   accountItem.style.visibility = '';
 }
 
 // ---------------------------------------------------------------------------
-// Boot: check session on every page load, update nav
+// Boot: check session on every page load, then update nav
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const session = await getSession();
     updateNav(session);
   } catch {
-    // Fallback: always reveal the nav button in logged-out state.
+    // Last-resort fallback: always show the button in logged-out state
     updateNav(null);
   }
 });
