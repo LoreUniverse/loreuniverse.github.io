@@ -34,6 +34,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run build
+        env:
+          LORE_API_URL_BUILD: ${{ secrets.LORE_API_URL_BUILD }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/_site
