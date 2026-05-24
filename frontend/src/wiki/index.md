@@ -7,6 +7,12 @@ layout: base.njk
 
 Welcome to the Lore Universe wiki. Browse by category below.
 
+{% if wiki.entries.length %}
+**{{ wiki.entries.length }} entries** indexed at {{ wiki.indexedAt }}.
+{% else %}
+_No wiki entries yet — sync via `scripts/sync-wiki.js` and rebuild._
+{% endif %}
+
 ---
 
 ## Characters
