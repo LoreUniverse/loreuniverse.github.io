@@ -74,7 +74,7 @@ export class AnthropicClaudeClient implements ClaudeClient {
     const user = buildUserPrompt(input);
     const response = await this.anthropic.messages.create({
       model: this.model,
-      max_tokens: 8192,
+      max_tokens: 16_000,
       system,
       messages: [{ role: 'user', content: user }],
     });

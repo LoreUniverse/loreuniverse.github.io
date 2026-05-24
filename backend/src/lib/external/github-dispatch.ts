@@ -63,7 +63,7 @@ export class RealGitHubDispatchClient implements GitHubDispatchClient {
 
 export function createGitHubDispatchClient(): GitHubDispatchClient {
   if (process.env.NODE_ENV === 'test') {
-    return new FakeGitHubDispatchClient();
+    throw new Error('Tests must inject a FakeGitHubDispatchClient directly');
   }
   const token = process.env.GITHUB_DISPATCH_TOKEN;
   const repo = process.env.GITHUB_DISPATCH_REPO;

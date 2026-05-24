@@ -18,7 +18,7 @@ export async function registerAutolinkRoutes(app: FastifyInstance): Promise<void
           type: 'object',
           required: ['chapterText'],
           properties: {
-            chapterText: { type: 'string', minLength: 1, maxLength: 500_000 },
+            chapterText: { type: 'string', minLength: 1, maxLength: 60_000 },
             policy: { type: 'string', enum: ['first-mention-per-chapter', 'first-mention-per-section', 'every-mention'] },
           },
         },

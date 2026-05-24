@@ -18,7 +18,11 @@ export async function registerWikiRoutes(app: FastifyInstance): Promise<void> {
   app.get('/api/wiki/:category/:slug', async (request, reply) => {
     const { category, slug } = request.params as { category: string; slug: string };
     const [entry] = await app.db.select().from(schema.wikiEntries)
-      .where(and(eq(schema.wikiEntries.category, category), eq(schema.wikiEntries.slug, slug)));
+      .where(and(
+        eq(schema.wikiEntries.category, category),
+        eq(schema.wikiEntries.slug, slug),
+        eq(schema.wikiEntries.isPublished, true),
+      ));
     if (!entry) return reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Entry not found.' } });
     return entry;
   });

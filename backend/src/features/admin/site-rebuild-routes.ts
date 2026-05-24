@@ -8,7 +8,7 @@ export async function registerSiteRebuildRoutes(app: FastifyInstance): Promise<v
       await app.dispatch.triggerEvent({
         eventType: 'wiki-content-changed',
         clientPayload: { reason: 'manual', actorUserId: request.user!.id },
-      });
+      }).catch((err) => { request.log.error({ err }, 'site rebuild dispatch failed'); throw err; });
 
       await app.audit.log({
         actorUserId: request.user!.id,
