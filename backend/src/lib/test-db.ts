@@ -20,7 +20,7 @@ export async function withRollbackDb<T>(
   let result: T;
   try {
     await baseDb.transaction(async (tx) => {
-      result = await fn(tx as typeof baseDb);
+      result = await fn(tx as unknown as typeof baseDb);
       throw new RollbackSignal();
     });
   } catch (err) {
