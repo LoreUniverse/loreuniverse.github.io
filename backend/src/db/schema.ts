@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, uuid, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, uuid, uniqueIndex, index, integer, jsonb } from 'drizzle-orm/pg-core';
 
 // ---------- USERS ----------
 // Better Auth manages id/email/name/image/emailVerified. We add role/tier/banned columns.
@@ -145,14 +145,71 @@ export const auditLog = pgTable(
   }),
 );
 
+// ---------- BOOKS ----------
+export const books = pgTable('books', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description').notNull().default(''),
+  coverImageUrl: text('cover_image_url'),
+  externalLinks: jsonb('external_links').notNull().default({}),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  isPublished: boolean('is_published').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ---------- CHAPTERS ----------
+export const chapters = pgTable(
+  'chapters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    bookId: uuid('book_id').notNull().references(() => books.id, { onDelete: 'cascade' }),
+    chapterNumber: integer('chapter_number').notNull(),
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uqBookSlug: uniqueIndex('chapters_book_slug_unique').on(t.bookId, t.slug),
+  }),
+);
+
+// ---------- WIKI ENTRIES ----------
+export const wikiEntries = pgTable(
+  'wiki_entries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    category: text('category').notNull(),
+    slug: text('slug').notNull(),
+    name: text('name').notNull(),
+    frontMatter: jsonb('front_matter').notNull().default({}),
+    body: text('body').notNull().default(''),
+    isPublished: boolean('is_published').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uqCategorySlug: uniqueIndex('wiki_entries_category_slug_unique').on(t.category, t.slug),
+  }),
+);
+
+// ---------- WIKI REVISIONS ----------
+export const wikiRevisions = pgTable('wiki_revisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  wikiEntryId: uuid('wiki_entry_id').notNull().references(() => wikiEntries.id, { onDelete: 'cascade' }),
+  editorUserId: text('editor_user_id').references(() => users.id, { onDelete: 'set null' }),
+  frontMatter: jsonb('front_matter').notNull().default({}),
+  body: text('body').notNull().default(''),
+  editSummary: text('edit_summary'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Exports for Better Auth introspection
 export const schema = {
-  users,
-  sessions,
-  accounts,
-  verifications,
-  userPermissions,
-  permissionApplications,
-  apiTokens,
-  auditLog,
+  users, sessions, accounts, verifications,
+  userPermissions, permissionApplications, apiTokens, auditLog,
+  books, chapters, wikiEntries, wikiRevisions,
 };

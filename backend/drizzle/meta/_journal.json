@@ -15,6 +15,13 @@
       "when": 1779596802632,
       "tag": "0001_add_permissions_tokens_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779601785100,
+      "tag": "0002_add_books_chapters_wiki",
+      "breakpoints": true
     }
   ]
 }

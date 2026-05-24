@@ -5,6 +5,10 @@ import authPlugin from './features/auth/index.js';
 import auditPlugin from './features/audit/index.js';
 import permissionsPlugin from './features/permissions/index.js';
 import tokensPlugin from './features/tokens/index.js';
+import wikiPlugin from './features/wiki/index.js';
+import booksPlugin from './features/books/index.js';
+import chaptersPlugin from './features/chapters/index.js';
+import adminPlugin from './features/admin/index.js';
 import { createDb } from './db/client.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -30,6 +34,10 @@ async function buildServer() {
   await app.register(auditPlugin);
   await app.register(permissionsPlugin);
   await app.register(tokensPlugin);
+  await app.register(wikiPlugin);
+  await app.register(booksPlugin);
+  await app.register(chaptersPlugin);
+  await app.register(adminPlugin);
   await registerHealthRoute(app);
 
   return app;
