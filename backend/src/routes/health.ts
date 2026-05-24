@@ -15,6 +15,10 @@ export async function registerHealthRoute(app: FastifyInstance): Promise<void> {
         audit: { status: 'ok' },
         permissions: { status: 'ok' },
         tokens: { status: 'ok' },
+        wiki: { status: 'ok' },
+        books: { status: 'ok' },
+        chapters: { status: 'ok' },
+        admin: { status: 'ok' },
       },
     };
   });
