@@ -100,15 +100,20 @@ document.getElementById('signin-form').addEventListener('submit', async e => {
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true;
 
-  const email    = document.getElementById('signin-email').value.trim();
-  const password = document.getElementById('signin-password').value;
+  try {
+    const email    = document.getElementById('signin-email').value.trim();
+    const password = document.getElementById('signin-password').value;
 
-  const { error } = await signIn(email, password);
-  if (error) {
-    errEl.textContent = error.message || 'Sign-in failed. Check your email and password.';
+    const { error } = await signIn(email, password);
+    if (error) {
+      errEl.textContent = error.message || 'Sign-in failed. Check your email and password.';
+      btn.disabled = false;
+    } else {
+      location.href = redirectTo;
+    }
+  } catch {
+    errEl.textContent = 'Network error — please try again.';
     btn.disabled = false;
-  } else {
-    location.href = redirectTo;
   }
 });
 
@@ -122,19 +127,24 @@ document.getElementById('register-form').addEventListener('submit', async e => {
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true;
 
-  const name     = document.getElementById('reg-name').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
+  try {
+    const name     = document.getElementById('reg-name').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
 
-  const { error } = await signUp(name, email, password);
-  if (error) {
-    errEl.textContent = error.message || 'Registration failed. Please try again.';
+    const { error } = await signUp(name, email, password);
+    if (error) {
+      errEl.textContent = error.message || 'Registration failed. Please try again.';
+      btn.disabled = false;
+    } else {
+      document.getElementById('register-form').hidden = true;
+      const successEl = document.getElementById('register-success');
+      successEl.hidden = false;
+      successEl.textContent = 'Check your email to verify your account.';
+    }
+  } catch {
+    errEl.textContent = 'Network error — please try again.';
     btn.disabled = false;
-  } else {
-    document.getElementById('register-form').hidden = true;
-    const successEl = document.getElementById('register-success');
-    successEl.hidden = false;
-    successEl.textContent = 'Check your email to verify your account.';
   }
 });
 </script>
