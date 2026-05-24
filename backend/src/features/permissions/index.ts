@@ -4,6 +4,7 @@ import { createPermissionsService, type PermissionsService, type Role } from './
 import { createTokenService, type TokenService } from '../tokens/service.js';
 import { createRequireAuth, createRequireRole, createRequirePermission } from './middleware.js';
 import { registerBanRoutes } from './ban-routes.js';
+import { registerGrantRoutes } from './grant-routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -24,6 +25,7 @@ async function permissionsPlugin(app: FastifyInstance) {
   app.decorate('requireRole', (minimum: Role) => createRequireRole(perms, minimum));
   app.decorate('requirePermission', (perm: string) => createRequirePermission(perms, perm));
   await registerBanRoutes(app);
+  await registerGrantRoutes(app);
 }
 
 export default fp(permissionsPlugin, { name: 'permissions', dependencies: ['auth', 'audit'] });
