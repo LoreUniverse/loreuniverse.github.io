@@ -299,6 +299,12 @@ Do not introduce hardcoded duplicates of paths that already live in these data f
 | Better Auth + Resend + email verification | ✅ Done (Foundation Plan B) |
 | Sign-up / sign-in / sign-out / password reset | ✅ Done (Foundation Plan B) |
 | Migrations on Fly deploy | ✅ Done (Foundation Plan B) |
+| user_permissions, permission_applications, api_tokens, audit_log schemas | ✅ Done (Foundation Plan C) |
+| Role middleware (requireAuth/requireRole/requirePermission) | ✅ Done (Foundation Plan C) |
+| Admin: ban/unban, grant/revoke permissions, application review | ✅ Done (Foundation Plan C) |
+| User: submit permission application | ✅ Done (Foundation Plan C) |
+| API token CRUD (lore_admin_*, lore_moderator_*) | ✅ Done (Foundation Plan C) |
+| Audit log (best-effort writes on state-changing endpoints) | ✅ Done (Foundation Plan C) |
 
 **Next planned step:** Continue populating the wiki with real entries via `scripts/migrate-obsidian.js`. After that, replace the test chapter with real Book 1 prose. Visual design is the next major phase once content density justifies it.
 
@@ -382,7 +388,7 @@ The module structure buries wiki content two levels deep. Current landing pages 
 Foundational backend implementation is split across four plans, executed sequentially:
 - Plan A: ✅ monorepo restructure, library rename, backend skeleton
 - Plan B: ✅ database, auth (Better Auth + Resend), email-verified signup/login
-- Plan C: roles, permissions, API tokens, audit log
+- Plan C: ✅ permissions, API tokens, audit log
 - Plan D: static-site/backend integration, Claude autolink endpoint
 
 After Plan D, feature work begins. See `docs/superpowers/specs/2026-05-22-foundational-backend-architecture-design.md` for the foundation spec, and `docs/superpowers/plans/` for the plan documents.
