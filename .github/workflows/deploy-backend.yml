@@ -16,6 +16,23 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: lore
+          POSTGRES_PASSWORD: lore
+          POSTGRES_DB: lore_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://lore:lore@localhost:5432/lore_test
+      DATABASE_URL_TEST: postgresql://lore:lore@localhost:5432/lore_test
     defaults:
       run:
         working-directory: backend
@@ -28,6 +45,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - run: npx drizzle-kit migrate
       - run: npm test
 
   deploy:
