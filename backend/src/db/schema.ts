@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, uuid, uniqueIndex, index } from 'drizzle-orm/pg-core';
 
 // ---------- USERS ----------
 // Better Auth manages id/email/name/image/emailVerified. We add role/tier/banned columns.
@@ -66,5 +66,93 @@ export const verifications = pgTable('verifications', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// ---------- USER PERMISSIONS ----------
+export const userPermissions = pgTable(
+  'user_permissions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    permission: text('permission').notNull(),
+    grantedBy: text('granted_by').references(() => users.id, { onDelete: 'set null' }),
+    grantedAt: timestamp('granted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uqUserPerm: uniqueIndex('user_permissions_user_perm_unique').on(t.userId, t.permission),
+  }),
+);
+
+// ---------- PERMISSION APPLICATIONS ----------
+export const permissionApplications = pgTable(
+  'permission_applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    permission: text('permission').notNull(),
+    justification: text('justification').notNull(),
+    status: text('status').notNull().default('pending'),
+    reviewedBy: text('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewNote: text('review_note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    statusIdx: index('permission_applications_status_created_at').on(t.status, t.createdAt),
+  }),
+);
+
+// ---------- API TOKENS ----------
+export const apiTokens = pgTable(
+  'api_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    prefix: text('prefix').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    prefixIdx: index('api_tokens_prefix_idx').on(t.prefix),
+  }),
+);
+
+// ---------- AUDIT LOG ----------
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    targetType: text('target_type'),
+    targetId: text('target_id'),
+    metadata: text('metadata'),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    actorIdx: index('audit_log_actor_created_at').on(t.actorUserId, t.createdAt),
+    actionIdx: index('audit_log_action_created_at').on(t.action, t.createdAt),
+  }),
+);
+
 // Exports for Better Auth introspection
-export const schema = { users, sessions, accounts, verifications };
+export const schema = {
+  users,
+  sessions,
+  accounts,
+  verifications,
+  userPermissions,
+  permissionApplications,
+  apiTokens,
+  auditLog,
+};

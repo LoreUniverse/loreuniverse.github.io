@@ -2,6 +2,9 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import { registerHealthRoute } from './routes/health.js';
 import authPlugin from './features/auth/index.js';
+import auditPlugin from './features/audit/index.js';
+import permissionsPlugin from './features/permissions/index.js';
+import tokensPlugin from './features/tokens/index.js';
 import { createDb } from './db/client.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -24,6 +27,9 @@ async function buildServer() {
   app.decorate('db', db);
 
   await app.register(authPlugin, { databaseUrl, baseUrl, secret });
+  await app.register(auditPlugin);
+  await app.register(permissionsPlugin);
+  await app.register(tokensPlugin);
   await registerHealthRoute(app);
 
   return app;

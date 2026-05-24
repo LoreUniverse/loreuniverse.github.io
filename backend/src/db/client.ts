@@ -4,6 +4,12 @@ import { schema } from './schema.js';
 
 type DrizzleClient = ReturnType<typeof drizzle<typeof schema>>;
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    db: DrizzleClient;
+  }
+}
+
 let _connections: postgres.Sql[] = [];
 
 export function createDb(url: string): DrizzleClient {
