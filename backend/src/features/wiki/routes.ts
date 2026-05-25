@@ -15,6 +15,61 @@ export async function registerWikiRoutes(app: FastifyInstance): Promise<void> {
     }).from(schema.wikiEntries).where(eq(schema.wikiEntries.isPublished, true));
   });
 
+  app.get(
+    '/api/admin/wiki',
+    { preHandler: [app.requireAuth, app.requireRole('admin')] },
+    async () => {
+      return app.db.select().from(schema.wikiEntries).orderBy(
+        schema.wikiEntries.category,
+        schema.wikiEntries.slug,
+      );
+    },
+  );
+
+  app.patch(
+    '/api/admin/wiki/:category/:slug',
+    {
+      preHandler: [app.requireAuth, app.requireRole('admin')],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['isPublished'],
+          properties: {
+            isPublished: { type: 'boolean' },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { category, slug } = request.params as { category: string; slug: string };
+      const { isPublished } = request.body as { isPublished: boolean };
+
+      const [existing] = await app.db.select().from(schema.wikiEntries)
+        .where(and(
+          eq(schema.wikiEntries.category, category),
+          eq(schema.wikiEntries.slug, slug),
+        ));
+      if (!existing) {
+        return reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Entry not found.' } });
+      }
+
+      const [entry] = await app.db.update(schema.wikiEntries)
+        .set({ isPublished, updatedAt: new Date() })
+        .where(eq(schema.wikiEntries.id, existing.id))
+        .returning();
+
+      await app.audit.log({
+        actorUserId: request.user!.id,
+        action: isPublished ? 'wiki.publish' : 'wiki.unpublish',
+        targetType: 'wiki_entry',
+        targetId: existing.id,
+        metadata: { category, slug },
+      }).catch((err) => request.log.error({ err }, 'audit log failed'));
+
+      return reply.send(entry);
+    },
+  );
+
   app.get('/api/wiki/:category/:slug', async (request, reply) => {
     const { category, slug } = request.params as { category: string; slug: string };
     const [entry] = await app.db.select().from(schema.wikiEntries)

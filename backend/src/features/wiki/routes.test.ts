@@ -67,6 +67,90 @@ describe('wiki routes', () => {
     });
   });
 
+  it('GET /api/admin/wiki returns all entries including unpublished', async () => {
+    await withRollbackDb(async (db) => {
+      const adminId = 'admin-wiki-list';
+      await db.insert(schema.users).values({ id: adminId, email: `${adminId}@x.com`, name: 'A', role: 'admin' });
+      await db.insert(schema.wikiEntries).values([
+        { category: 'characters', slug: 'aldren', name: 'Aldren', frontMatter: {}, body: 'Body.', isPublished: true },
+        { category: 'locations', slug: 'vale', name: 'Vale', frontMatter: {}, body: 'Hidden.', isPublished: false },
+      ]);
+      const { app, tokens } = await setupApp(db);
+      const { plaintext } = await tokens.create({ userId: adminId, userRole: 'admin', name: 'test' });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/admin/wiki',
+        headers: { authorization: `Bearer ${plaintext}` },
+      });
+      expect(response.statusCode).toBe(200);
+      const list = response.json();
+      expect(list).toHaveLength(2);
+      expect(list.map((e: any) => e.slug).sort()).toEqual(['aldren', 'vale']);
+    });
+  });
+
+  it('GET /api/admin/wiki returns 403 for non-admin', async () => {
+    await withRollbackDb(async (db) => {
+      const userId = 'regular-wiki';
+      await db.insert(schema.users).values({ id: userId, email: `${userId}@x.com`, name: 'R', role: 'user' });
+      const { app, tokens } = await setupApp(db);
+      const { plaintext } = await tokens.create({ userId, userRole: 'user', name: 'test' });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/admin/wiki',
+        headers: { authorization: `Bearer ${plaintext}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  it('PATCH /api/admin/wiki/:category/:slug toggles isPublished and writes audit log', async () => {
+    await withRollbackDb(async (db) => {
+      const adminId = 'admin-patch-wiki';
+      await db.insert(schema.users).values({ id: adminId, email: `${adminId}@x.com`, name: 'A', role: 'admin' });
+      await db.insert(schema.wikiEntries).values({
+        category: 'characters', slug: 'test-char', name: 'Test', frontMatter: {}, body: 'Body.', isPublished: true,
+      });
+      const { app, tokens } = await setupApp(db);
+      const { plaintext } = await tokens.create({ userId: adminId, userRole: 'admin', name: 'test' });
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/admin/wiki/characters/test-char',
+        headers: { authorization: `Bearer ${plaintext}`, 'content-type': 'application/json' },
+        payload: { isPublished: false },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().isPublished).toBe(false);
+
+      const [entry] = await db.select().from(schema.wikiEntries);
+      expect(entry.isPublished).toBe(false);
+
+      const logs = await db.select().from(schema.auditLog);
+      expect(logs).toHaveLength(1);
+      expect(logs[0].action).toBe('wiki.unpublish');
+    });
+  });
+
+  it('PATCH /api/admin/wiki/:category/:slug returns 404 for missing entry', async () => {
+    await withRollbackDb(async (db) => {
+      const adminId = 'admin-patch-404';
+      await db.insert(schema.users).values({ id: adminId, email: `${adminId}@x.com`, name: 'A', role: 'admin' });
+      const { app, tokens } = await setupApp(db);
+      const { plaintext } = await tokens.create({ userId: adminId, userRole: 'admin', name: 'test' });
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/admin/wiki/characters/nonexistent',
+        headers: { authorization: `Bearer ${plaintext}`, 'content-type': 'application/json' },
+        payload: { isPublished: false },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   it('admin upsert creates a new entry + writes revision + triggers dispatch', async () => {
     await withRollbackDb(async (db) => {
       const adminId = 'admin-wiki';
