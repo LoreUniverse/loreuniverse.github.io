@@ -14,6 +14,10 @@ import { createDb } from './db/client.js';
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? '0.0.0.0';
 
+function getAllowedOrigins(): string[] {
+  return (process.env.ALLOWED_ORIGINS ?? '').split(',').map(o => o.trim()).filter(Boolean);
+}
+
 async function buildServer() {
   const app = Fastify({
     logger: { level: process.env.LOG_LEVEL ?? 'info' },
@@ -29,6 +33,34 @@ async function buildServer() {
 
   const db = createDb(databaseUrl);
   app.decorate('db', db);
+
+  // Global CORS — applies to all non-auth routes (auth plugin handles /api/auth/* itself).
+  app.addHook('onSend', async (request, reply) => {
+    const origin = request.headers.origin;
+    if (origin && getAllowedOrigins().includes(origin)) {
+      if (!reply.hasHeader('access-control-allow-origin')) {
+        reply.header('Access-Control-Allow-Origin', origin);
+        reply.header('Access-Control-Allow-Credentials', 'true');
+      }
+    }
+  });
+
+  // Handle OPTIONS preflight for all non-auth routes.
+  app.options('*', async (request, reply) => {
+    const origin = request.headers.origin;
+    if (origin && getAllowedOrigins().includes(origin)) {
+      reply
+        .header('Access-Control-Allow-Origin', origin)
+        .header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+        .header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        .header('Access-Control-Allow-Credentials', 'true')
+        .header('Access-Control-Max-Age', '86400')
+        .status(204)
+        .send();
+    } else {
+      reply.status(403).send();
+    }
+  });
 
   await app.register(authPlugin, { databaseUrl, baseUrl, secret });
   await app.register(auditPlugin);
