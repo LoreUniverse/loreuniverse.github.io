@@ -86,34 +86,43 @@ lorekeeper/                          ← repo root (local name)
 │       │   ├── config.js            ← site-wide settings (wikiLinksVisible, etc.)
 │       │   └── wiki.js              ← build-time API fetch → wiki data for templates
 │       ├── _includes/
-│       │   ├── base.njk             ← global layout (nav, page shell)
+│       │   ├── base.njk             ← root layout for all non-reader pages (loads site.css)
+│       │   ├── reader-layout.njk    ← standalone layout for chapter pages only (loads reader.css, no nav/footer)
 │       │   ├── redirect.njk         ← meta-refresh redirect template
-│       │   ├── chapter.njk          ← chapter reading template
-│       │   ├── character.njk        ← wiki: character entry
-│       │   ├── faction.njk          ← wiki: faction entry
-│       │   ├── location.njk         ← wiki: location entry
-│       │   ├── lore-trait.njk       ← wiki: lore trait entry
-│       │   ├── lore.njk             ← wiki: lore entry
-│       │   └── mechanic.njk         ← wiki: mechanic entry
+│       │   ├── chapter.njk          ← chapter reading template (uses reader-layout.njk)
+│       │   ├── wiki-category.njk    ← shared layout for all 6 wiki category listing pages
+│       │   ├── wiki-entry.njk       ← fallback layout for wiki entry pages
+│       │   ├── character.njk        ← wiki: character entry (structured meta)
+│       │   ├── faction.njk          ← wiki: faction entry (structured meta)
+│       │   ├── location.njk         ← wiki: location entry (structured meta)
+│       │   ├── lore-trait.njk       ← wiki: lore trait entry (structured meta)
+│       │   ├── lore.njk             ← wiki: lore entry (structured meta)
+│       │   └── mechanic.njk         ← wiki: mechanic entry (structured meta)
 │       ├── lorekeeper/              ← Library module (internal name kept)
 │       │   ├── index.md             ← /library/
 │       │   └── books/               ← /library/books/*
 │       ├── wiki/                    ← Wiki module (top-level)
-│       │   ├── index.md             ← /wiki/
-│       │   ├── characters/
-│       │   ├── lore-traits/
-│       │   ├── mechanics/
-│       │   ├── locations/
-│       │   ├── factions/
-│       │   └── lore/
+│       │   ├── index.njk            ← /wiki/ — V2 wiki hub (6 category cards with live counts)
+│       │   ├── characters/index.md  ← uses wiki-category.njk + category_key: characters
+│       │   ├── lore-traits/index.md ← uses wiki-category.njk + category_key: lore-traits
+│       │   ├── mechanics/index.md   ← uses wiki-category.njk + category_key: mechanics
+│       │   ├── locations/index.md   ← uses wiki-category.njk + category_key: locations
+│       │   ├── factions/index.md    ← uses wiki-category.njk + category_key: factions
+│       │   └── lore/index.md        ← uses wiki-category.njk + category_key: lore
 │       ├── account/                 ← Auth UI
 │       │   ├── index.njk            ← /account/ (sign in / sign up / reset)
 │       │   └── profile/index.njk   ← /account/profile/
-│       ├── assets/                  ← CSS, JS, images (passthrough to _site)
-│       │   └── (to be created — see Plan F)
+│       ├── assets/
+│       │   ├── css/
+│       │   │   ├── tokens.css       ← design tokens only (@imported by site.css and reader.css — never loaded directly)
+│       │   │   ├── site.css         ← always-dark site shell; @imports tokens.css; loaded by base.njk
+│       │   │   └── reader.css       ← reader-only styles; @imports tokens.css; loaded by reader-layout.njk
+│       │   └── js/
+│       │       ├── auth.js          ← client-side auth (session check, account button state)
+│       │       └── reader.js        ← reader settings: font size, wiki links, dark/light theme
 │       ├── redirects/               ← legacy /lorekeeper/* → new URLs
 │       ├── about/
-│       └── index.md                 ← homepage
+│       └── index.njk                ← V2 homepage (hero, explore cards, now reading, wiki preview)
 ├── backend/                         ← Fastify TypeScript API
 │   ├── package.json
 │   ├── tsconfig.json
@@ -317,16 +326,38 @@ The first module is named **Library** externally (URLs, nav labels, page titles)
 - **`navigation.js`** — single source of truth for the navbar array. `base.njk` renders from this.
 - **`wiki.js`** — fetches `/api/wiki/all` at build time. Gracefully degrades to empty on timeout/error.
 
-### Navbar Behavior
-- Items with a `submenu` render as label link + chevron button. Label navigates; chevron toggles dropdown.
-- Click-to-open dropdowns (not hover) for touch device compatibility.
-- One level of nesting maximum.
+### V2 CSS Architecture (three-file system)
+- **`tokens.css`** — design tokens only (palette, fonts, motion, z-index, Google Fonts `@import`). Never loaded directly by a page. Only ever `@import`ed.
+- **`site.css`** — always-dark site shell. `@import 'tokens.css'`. Covers nav, footer, buttons, homepage sections, wiki hub/category/entry pages, responsive breakpoints. Loaded by `base.njk`.
+- **`reader.css`** — reader-only. `@import 'tokens.css'`. Scoped to `.reader-wrap`. Light mode overrides via `.reader-wrap[data-reader-theme="light"]` and `:root[data-reader-theme="light"] .reader-wrap`. Loaded only by `reader-layout.njk`. Defines `btn-secondary` locally (site.css also defines it, but reader pages don't load site.css).
+
+### Reader Layout Isolation
+Chapter pages use `reader-layout.njk` — a complete standalone HTML document with no site nav or footer. It loads only `reader.css` and `reader.js`. The anti-FOUC script in `<head>` reads `localStorage.getItem('lr-reader-theme')` and sets `document.documentElement.dataset.readerTheme` before paint. Runtime JS also sets `WRAP.dataset.readerTheme`. CSS covers both selectors to prevent flash.
+
+Reader `localStorage` keys: `lr-font-size` (sm/md/lg), `lr-wiki-links` (show/hidden), `lr-reader-theme` (dark/light). Old key `lr-theme` is retired.
+
+### V2 Design Tokens
+- Fonts: **Cinzel Decorative** (display/headings), **Rajdhani** (UI labels), **Inter** (body prose)
+- Palette: `--void: #07080e`, `--gold: #f59e0b`, `--blue: #38bdf8`, `--violet: #c084fc`
+- CSS variables: `--font-display`, `--font-ui`, `--font-body`, `--dur-fast/base/slow`, `--z-nav`, `--z-reader-bar`, `--z-settings`
+
+### Navbar Behavior (V2)
+- Nav is hardcoded HTML in `base.njk` (not data-driven from `navigation.js`).
+- Glass pill style: `position: fixed; top: 1rem; left/right: 1rem; border-radius: 12px; backdrop-filter: blur`.
+- Desktop: brand sigil + wordmark left, nav links center, gold Account button right.
+- Mobile (≤900px): hamburger toggles `.nav-mobile--open` dropdown. Nav links and Account button hidden.
 
 ### Layout Chaining
 Front matter `---` must appear **before** any Nunjucks comments in template files — Eleventy's front matter parser doesn't detect it otherwise and the `base.njk` layout chain silently breaks.
 
+### Wiki Category Layout
+All six wiki category listing pages (`/wiki/characters/`, etc.) share `wiki-category.njk`. Their `index.md` files specify `layout: wiki-category.njk` and `category_key: <slug>` in front matter. The layout reads `wiki.byCategory[category_key]` for entry data. The `wiki.byCategory` object is keyed by category slug; each value is an array of `{ name, slug, description }`.
+
+### Chapter Pagination Filter
+`getPrevNext(collection, url)` is registered in `.eleventy.js`. Returns `{ prev, next }` — each is a full Eleventy page object or `null`. Used in `chapter.njk` as `{% set chapNav = collections.chapters | getPrevNext(page.url) %}`.
+
 ### Directory Data Files
-Each wiki category folder has a `.11tydata.json` assigning the correct layout, so individual `.md` entries don't need a `layout:` field.
+Each wiki category entry folder has a `.11tydata.json` assigning the correct per-entry layout (e.g. `character.njk`), so individual entry `.md` files don't need a `layout:` field. Note: the category `index.md` files do have `layout: wiki-category.njk` in their own front matter (they need `category_key` too, which `.11tydata.json` can't supply per-page).
 
 ### Architectural Principles (non-negotiable in all future features)
 1. No feature reads or writes another feature's tables directly — cross-feature access goes through service methods.
@@ -349,7 +380,7 @@ Each wiki category folder has a `.11tydata.json` assigning the correct layout, s
 
 ## 8. Current State
 
-### Foundation Plans — ALL COMPLETE ✅
+### Plans — Status
 
 | Plan | Description | Status |
 |---|---|---|
@@ -357,17 +388,19 @@ Each wiki category folder has a `.11tydata.json` assigning the correct layout, s
 | Foundation B | Postgres (Neon), Drizzle, Better Auth, Resend, email-verified auth flows | ✅ Merged |
 | Foundation C | Role/permission middleware, API tokens, audit log, ban/grant/application endpoints | ✅ Merged |
 | Foundation D | Books/chapters/wiki tables, Claude autolink, GitHub dispatch rebuild, Eleventy build-time wiki fetch | ✅ Merged |
+| Plan F (V2 Design) | Dark techno-arcane design system, V2 CSS, reader isolation, all page templates | ✅ Complete — 15 commits on main, **push pending** (see auth issue below) |
 
 ### Infrastructure
 | Component | State |
 |---|---|
 | Backend (loreuniverse-api.fly.dev) | ✅ Live — all 9 modules healthy |
-| Static site (loreuniverse.github.io) | ✅ Live — unstyled but functional |
+| Static site (loreuniverse.github.io) | ✅ Live — currently showing pre-V2 build; V2 deploys once push issue resolved |
 | CI/CD (deploy-backend.yml) | ✅ Tests + deploy on push to main |
 | CI/CD (deploy-site.yml) | ✅ Builds + deploys on push + repository_dispatch |
 | Neon database | ✅ Live — 3 migrations applied |
 | Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY |
 | GitHub secret (lorekeeper repo) | ⚠️ **LORE_API_URL_BUILD not yet set** — wiki data not fetched at build time |
+| GitHub push auth | ⚠️ **403 on push** — credential for `timyih` may have expired. Fix: `cmdkey /delete:LegacyGeneric:target=git:https://github.com` then `git push`, or switch to SSH remote |
 
 ### Content
 | Area | State |
@@ -376,28 +409,24 @@ Each wiki category folder has a `.11tydata.json` assigning the correct layout, s
 | Test entries | ⚠️ 7 test-* entries need removal or `isPublished: false` before public launch |
 | Unresolved [[links]] | ⚠️ Several wiki entries still contain `[[double bracket]]` links not yet converted (e.g. Pinelopi mentions `[[Mythos Corp]]`, Lore Traits mentions `[[Lore Power]]`, `[[Loreseekers]]`) |
 | Book 1 chapters | ⬜ No real prose added yet |
-| Visual design | ⬜ Site is unstyled — Plan F |
+| Visual design | ✅ V2 complete — dark techno-arcane design, full CSS system, reader isolation |
 | Admin control panel | ⬜ No admin UI — Plan E |
 
 ### Immediate One-Time Actions Needed
-1. **Set `LORE_API_URL_BUILD` secret** in GitHub: repo `LoreUniverse/lorekeeper` → Settings → Secrets → Actions → New secret: `LORE_API_URL_BUILD` = `https://loreuniverse-api.fly.dev`
-2. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
+1. **Fix GitHub push auth** — credential expired for `timyih`. Run in PowerShell: `cmdkey /delete:LegacyGeneric:target=git:https://github.com` then `git push`. Or switch to SSH: `git remote set-url origin git@github.com:LoreUniverse/lorekeeper.git`
+2. **Set `LORE_API_URL_BUILD` secret** in GitHub: repo `LoreUniverse/lorekeeper` → Settings → Secrets → Actions → New secret: `LORE_API_URL_BUILD` = `https://loreuniverse-api.fly.dev`
+3. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
 
 ---
 
 ## 9. Next Plans
 
 ### Plan E — Admin Control Panel
-**Status:** Spec and plan written — `docs/superpowers/specs/2026-05-24-admin-control-panel-design.md`  
+**Status:** Spec written — `docs/superpowers/specs/2026-05-24-admin-control-panel-design.md`. No implementation plan written yet.  
 **What it builds:** A `/admin/` section of the static site (Eleventy pages + Alpine.js CDN) with a GUI for all the backend admin features: site rebuild, wiki management, user management, permission applications, API tokens, and audit log.  
 **Why it's next:** All the backend infrastructure exists but there is no UI to interact with it — currently requires raw API calls. This plan makes the backend testable and usable in a browser.  
-**New backend needed:** `GET /api/admin/wiki` (all entries incl. unpublished), `PATCH /api/admin/wiki/:category/:slug` (toggle isPublished), `GET /api/admin/users` (list users), `GET /api/admin/audit` (paginated log).
-
-### Plan F — Visual Design Overhaul
-**Status:** Spec and plan written — `docs/superpowers/specs/2026-05-24-visual-design-overhaul-design.md`  
-**What it builds:** A complete CSS design system for the site — custom property token file (owner fills in values), component CSS files for nav, wiki, chapters, auth, and landing pages. Extracts inline styles/scripts from `base.njk` into `assets/`.  
-**Why it's next:** The site is currently unstyled HTML. All content exists but is not presentable.  
-**Note:** The plan defines structure and tokens; all aesthetic choices (colors, fonts, overall feel) are made by the owner.
+**New backend needed:** `GET /api/admin/wiki` (all entries incl. unpublished), `PATCH /api/admin/wiki/:category/:slug` (toggle isPublished), `GET /api/admin/users` (list users), `GET /api/admin/audit` (paginated log).  
+**V2 design note:** The admin panel should use the V2 design system (`base.njk` + `site.css`) — the dark techno-arcane aesthetic works well for an admin interface.
 
 ---
 
