@@ -94,14 +94,10 @@ describe('wiki routes', () => {
     await withRollbackDb(async (db) => {
       const userId = 'regular-wiki';
       await db.insert(schema.users).values({ id: userId, email: `${userId}@x.com`, name: 'R', role: 'user' });
-      const { app, tokens } = await setupApp(db);
-      const { plaintext } = await tokens.create({ userId, userRole: 'user', name: 'test' });
+      const { app } = await setupApp(db);
+      (app as any).auth = { api: { getSession: async () => ({ user: { id: userId } }) } };
 
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/admin/wiki',
-        headers: { authorization: `Bearer ${plaintext}` },
-      });
+      const response = await app.inject({ method: 'GET', url: '/api/admin/wiki' });
       expect(response.statusCode).toBe(403);
     });
   });

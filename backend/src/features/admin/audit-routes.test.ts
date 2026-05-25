@@ -38,12 +38,10 @@ describe('admin audit routes', () => {
     await withRollbackDb(async (db) => {
       const id = 'regular-audit';
       await db.insert(schema.users).values({ id, email: `${id}@x.com`, name: 'R', role: 'user' });
-      const { app, tokens } = await setupApp(db);
-      const { plaintext } = await tokens.create({ userId: id, userRole: 'user', name: 'tok' });
-      const res = await app.inject({
-        method: 'GET', url: '/api/admin/audit',
-        headers: { authorization: `Bearer ${plaintext}` },
-      });
+      const { app } = await setupApp(db);
+      (app as any).auth = { api: { getSession: async () => ({ user: { id } }) } };
+
+      const res = await app.inject({ method: 'GET', url: '/api/admin/audit' });
       expect(res.statusCode).toBe(403);
     });
   });
