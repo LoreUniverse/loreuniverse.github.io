@@ -98,6 +98,21 @@ module.exports = function(eleventyConfig) {
       .sort((a, b) => a.data.chapter_number - b.data.chapter_number);
   });
 
+  // Combined wiki entries from all six categories, sorted newest-first by file date.
+  // Used by the homepage fallback when the API is unavailable at build time.
+  eleventyConfig.addCollection("wikiRecentEntries", function(collectionApi) {
+    const globs = [
+      "src/wiki/characters/*.md",
+      "src/wiki/lore-traits/*.md",
+      "src/wiki/mechanics/*.md",
+      "src/wiki/locations/*.md",
+      "src/wiki/factions/*.md",
+      "src/wiki/lore/*.md",
+    ];
+    const all = collectionApi.getFilteredByGlob(globs).filter(item => item.data.name);
+    return all.sort((a, b) => b.date - a.date);
+  });
+
   // ---------------------------------------------------------------------------
   // 3. FILTERS
   // ---------------------------------------------------------------------------
@@ -116,6 +131,19 @@ module.exports = function(eleventyConfig) {
       day: "numeric",
       timeZone: "UTC",
     });
+  });
+
+  // limit: returns the first N items of an array (JavaScript Array.slice, not Nunjucks chunking).
+  // Use | limit(5) where you'd write .slice(0,5) in JS.
+  eleventyConfig.addFilter("limit", function(arr, n) {
+    return (arr || []).slice(0, n);
+  });
+
+  // wikiCategory: extracts the category segment from a wiki entry URL.
+  // Example: "/wiki/lore-traits/librarian/" → "lore-traits"
+  eleventyConfig.addFilter("wikiCategory", function(url) {
+    const match = (url || "").match(/^\/wiki\/([^/]+)\//);
+    return match ? match[1] : "";
   });
 
   // slugify: converts a display string into a URL-safe slug.

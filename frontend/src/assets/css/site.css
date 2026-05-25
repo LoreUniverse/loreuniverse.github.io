@@ -605,6 +605,9 @@ a { color: inherit; text-decoration: none; }
 .wiki-entry-page-prose li { margin-bottom: 0.35rem; }
 .wiki-entry-page-prose hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
 
+/* Base container for structured wiki entry articles (character.njk, faction.njk, etc.) */
+.wiki-entry { padding: 8rem 2rem 6rem; max-width: 960px; margin: 0 auto; }
+
 /* Wiki entry structured meta (character.njk, faction.njk, etc.) */
 .wiki-entry__header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
 .wiki-entry__header h1 {
@@ -649,7 +652,7 @@ a { color: inherit; text-decoration: none; }
 
 /* Wiki link token — show/hide driven by [data-wiki-links] on containing element */
 .wiki-link { color: var(--violet); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
-[data-wiki-links="false"] .wiki-link { display: none; }
+[data-wiki-links="false"] .wiki-link { color: inherit; text-decoration: none; pointer-events: none; cursor: auto; }
 [data-wiki-links="false"] .wiki-link--hidden { display: none; }
 
 /* -----------------------------------------------------------------
@@ -734,7 +737,7 @@ a { color: inherit; text-decoration: none; }
 }
 .books-page-back:hover { color: var(--text-primary); }
 .books-page-title {
-  font-family: var(--font-display);
+  font-family: 'Cinzel', serif;
   font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700;
   color: var(--text-bright); letter-spacing: 0.04em;
 }
@@ -775,7 +778,7 @@ a { color: inherit; text-decoration: none; }
 }
 .chapters-page-back:hover { color: var(--text-primary); }
 .chapters-page-title {
-  font-family: var(--font-display);
+  font-family: 'Cinzel', serif;
   font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700;
   color: var(--text-bright); letter-spacing: 0.04em; margin-bottom: 0.5rem;
 }

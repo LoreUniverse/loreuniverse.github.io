@@ -131,13 +131,15 @@ permalink: /
   </div>
 </section>
 
-{# Now Reading #}
+{# Latest Chapter — shows the most recently published chapter.
+   TODO: When reading progression is implemented, add a "Currently Reading" link above this
+   that brings the user back to the chapter they last left off on (store in localStorage or account). #}
 <section class="chapter-wrap" aria-labelledby="chapter-heading">
   <div class="container">
     <div class="s-divider">
       <div class="s-divider-label">
         <span class="s-divider-rune" aria-hidden="true">◆</span>
-        Now Reading
+        Latest Chapter
         <span class="s-divider-rune" aria-hidden="true">◆</span>
       </div>
     </div>
@@ -192,7 +194,7 @@ permalink: /
 
     {% if wiki.entries and wiki.entries.length %}
     <div class="wiki-grid">
-      {% for entry in wiki.entries | slice(0, 5) %}
+      {% for entry in wiki.entries | limit(5) %}
       <a class="wiki-card" href="{{ site.modules.wiki.root }}/{{ entry.category }}/{{ entry.slug }}/">
         <div class="wiki-cat">{{ entry.category | replace("-", " ") | title }}</div>
         <h3 class="wiki-entry-title">{{ entry.name }}</h3>
@@ -210,25 +212,11 @@ permalink: /
       </a>
     </div>
     {% else %}
-    {# Fallback: show entries from Eleventy collections #}
+    {# Fallback: show 5 most recent entries from Eleventy collections when API is unavailable #}
     <div class="wiki-grid">
-      {% for item in collections.characters %}
+      {% for item in collections.wikiRecentEntries | limit(5) %}
       <a class="wiki-card" href="{{ item.url }}">
-        <div class="wiki-cat">Character</div>
-        <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
-        {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
-      </a>
-      {% endfor %}
-      {% for item in collections.loreTraits %}
-      <a class="wiki-card" href="{{ item.url }}">
-        <div class="wiki-cat">Lore Trait</div>
-        <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
-        {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
-      </a>
-      {% endfor %}
-      {% for item in collections.mechanics %}
-      <a class="wiki-card" href="{{ item.url }}">
-        <div class="wiki-cat">Mechanic</div>
+        <div class="wiki-cat">{{ item.url | wikiCategory | replace("-", " ") | title }}</div>
         <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
         {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
       </a>

@@ -22,9 +22,11 @@ permalink: /library/
       </p>
     </div>
 
-    {# Latest Chapter #}
+    {# Latest Chapter — shows the most recently published chapter.
+       TODO: When reading progression is implemented, add a "Currently Reading" link here
+       that brings the user back to the chapter they last left off on. #}
     <div class="library-section">
-      <p class="library-section-title">Now Reading</p>
+      <p class="library-section-title">Latest Chapter</p>
       {% if latestChapter %}
       <div class="chapter-card">
         <div>
@@ -58,7 +60,7 @@ permalink: /library/
     {# Navigation cards #}
     <p class="library-section-title">Explore</p>
     <div class="library-nav-grid">
-      <a class="explore-card explore-card--gold" href="/library/books/book1/chapters/"
+      <a class="explore-card explore-card--gold" href="/library/books/"
         aria-label="Books — Read the chapters">
         <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="5" y="5" width="30" height="30" rx="3" stroke="rgba(245,158,11,0.25)" stroke-width="1"/>

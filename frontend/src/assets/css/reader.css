@@ -168,7 +168,7 @@ a { color: inherit; text-decoration: none; }
 
 /* Wiki links */
 .wiki-link { color: var(--violet); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
-[data-wiki-links="false"] .wiki-link { display: none; }
+[data-wiki-links="false"] .wiki-link { color: inherit; text-decoration: none; pointer-events: none; cursor: auto; }
 [data-wiki-links="false"] .wiki-link--hidden { display: none; }
 
 /* Reader pagination */
