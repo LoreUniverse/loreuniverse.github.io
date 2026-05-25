@@ -68,7 +68,13 @@ title: Account
 </div>
 
 <script type="module">
-import { signIn, signUp } from '/assets/js/auth.js';
+import { getSession, signIn, signUp } from '/assets/js/auth.js';
+
+// Redirect already-signed-in users straight to their profile
+(async () => {
+  const session = await getSession();
+  if (session) { location.replace('/account/profile/'); }
+})();
 
 // ---------------------------------------------------------------------------
 // Tab switching
