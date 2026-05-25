@@ -2,6 +2,8 @@ import fp from 'fastify-plugin';
 import type { FastifyInstance } from 'fastify';
 import { registerAutolinkRoutes } from './autolink-routes.js';
 import { registerSiteRebuildRoutes } from './site-rebuild-routes.js';
+import { registerAdminUserRoutes } from './user-routes.js';
+import { registerAdminAuditRoutes } from './audit-routes.js';
 import { createClaudeClient } from '../../lib/external/claude.js';
 
 async function adminPlugin(app: FastifyInstance) {
@@ -10,6 +12,8 @@ async function adminPlugin(app: FastifyInstance) {
   }
   await registerAutolinkRoutes(app);
   await registerSiteRebuildRoutes(app);
+  await registerAdminUserRoutes(app);
+  await registerAdminAuditRoutes(app);
 }
 
 export default fp(adminPlugin, { name: 'admin', dependencies: ['permissions', 'wiki', 'audit'] });
