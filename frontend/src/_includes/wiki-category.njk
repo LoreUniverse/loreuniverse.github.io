@@ -1,3 +1,6 @@
+---
+layout: base.njk
+---
 {#
   wiki-category.njk — V2
   Shared layout for all six wiki category listing pages.
@@ -9,15 +12,32 @@
     layout:       "wiki-category.njk"
     permalink:    "/wiki/characters/"
 
-  Entry data comes from wiki.byCategory[category_key] (API-backed build data).
-  If the API is unavailable at build time, falls back to an empty state.
+  Primary data source: wiki.byCategory[category_key] (API-backed).
+  Fallback: Eleventy collections (characters, loreTraits, mechanics, etc.)
+  if the API is unavailable at build time.
 #}
----
-layout: base.njk
----
 
+{# Try API data first, fall back to Eleventy collections #}
 {% set entries = wiki.byCategory[category_key] %}
-{% set entryCount = entries.length if entries else 0 %}
+
+{% if not entries or not entries.length %}
+  {# Map category_key to the correct Eleventy collection #}
+  {% if category_key == 'characters' %}
+    {% set collectionItems = collections.characters %}
+  {% elif category_key == 'lore-traits' %}
+    {% set collectionItems = collections.loreTraits %}
+  {% elif category_key == 'mechanics' %}
+    {% set collectionItems = collections.mechanics %}
+  {% elif category_key == 'locations' %}
+    {% set collectionItems = collections.locations %}
+  {% elif category_key == 'factions' %}
+    {% set collectionItems = collections.factions %}
+  {% elif category_key == 'lore' %}
+    {% set collectionItems = collections.lore %}
+  {% endif %}
+{% endif %}
+
+{% set entryCount = entries.length if (entries and entries.length) else (collectionItems.length if collectionItems else 0) %}
 
 <div class="wiki-category">
   <div class="container">
@@ -36,6 +56,7 @@ layout: base.njk
     </div>
 
     {% if entries and entries.length %}
+    {# API data path #}
     <div class="wiki-entry-grid">
       {% for entry in entries %}
       <a class="wiki-entry-card" href="{{ site.modules.wiki.root }}/{{ category_key }}/{{ entry.slug }}/">
@@ -47,9 +68,24 @@ layout: base.njk
       </a>
       {% endfor %}
     </div>
+
+    {% elif collectionItems and collectionItems.length %}
+    {# Eleventy collection fallback — collections already exclude index pages #}
+    <div class="wiki-entry-grid">
+      {% for item in collectionItems %}
+      <a class="wiki-entry-card" href="{{ item.url }}">
+        <span class="wiki-entry-card-badge">{{ title | truncate(12, true, '') }}</span>
+        <p class="wiki-entry-card-name">{{ item.data.name }}</p>
+        {% if item.data.summary %}
+        <p class="wiki-entry-card-desc">{{ item.data.summary | truncate(120) }}</p>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+
     {% else %}
     <div class="wiki-empty">
-      <p class="wiki-empty-text">No entries yet — sync wiki data and rebuild.</p>
+      <p class="wiki-empty-text">No entries yet.</p>
     </div>
     {% endif %}
 

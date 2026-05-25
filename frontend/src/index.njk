@@ -210,12 +210,35 @@ permalink: /
       </a>
     </div>
     {% else %}
+    {# Fallback: show entries from Eleventy collections #}
     <div class="wiki-grid">
-      <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="Browse the wiki"
-        style="grid-column: 1 / -1; min-height: 180px;">
+      {% for item in collections.characters %}
+      <a class="wiki-card" href="{{ item.url }}">
+        <div class="wiki-cat">Character</div>
+        <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
+        {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
+      </a>
+      {% endfor %}
+      {% for item in collections.loreTraits %}
+      <a class="wiki-card" href="{{ item.url }}">
+        <div class="wiki-cat">Lore Trait</div>
+        <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
+        {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
+      </a>
+      {% endfor %}
+      {% for item in collections.mechanics %}
+      <a class="wiki-card" href="{{ item.url }}">
+        <div class="wiki-cat">Mechanic</div>
+        <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
+        {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
+      </a>
+      {% endfor %}
+      <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="View all wiki entries">
         <div class="wiki-cat" style="color:var(--text-muted)">Compendium</div>
-        <p class="wiki-entry-title" style="color:var(--text-secondary)">World entries coming soon</p>
-        <p class="wiki-entry-desc" style="color:var(--text-muted); font-size:0.78rem; margin-top:0.25rem;">Browse the wiki to see what's available.</p>
+        <p class="wiki-entry-title" style="color:var(--text-secondary)">Explore All Entries</p>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(192,132,252,0.5)" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
       </a>
     </div>
     {% endif %}

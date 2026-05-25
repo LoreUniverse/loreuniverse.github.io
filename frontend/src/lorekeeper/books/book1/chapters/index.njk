@@ -1,0 +1,60 @@
+---
+title: Chapters — Book 1
+layout: base.njk
+permalink: /library/books/book1/chapters/
+---
+{#
+  chapters/index.njk — Chapter listing for Book 1
+  Lists chapters sorted by chapter_number.
+#}
+
+<div class="chapters-page">
+  <div class="container">
+
+    <div class="chapters-page-header">
+      <a class="chapters-page-back" href="/library/books/">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Books
+      </a>
+      <h1 class="chapters-page-title">Book 1: Lorekeeper</h1>
+      <p class="chapters-page-subtitle">
+        {% if collections.chapters and collections.chapters.length %}
+          {{ collections.chapters.length }} chapter{% if collections.chapters.length != 1 %}s{% endif %}
+        {% else %}
+          No chapters yet
+        {% endif %}
+      </p>
+    </div>
+
+    {% if collections.chapters and collections.chapters.length %}
+    <div class="chapter-list">
+      {% for chapter in collections.chapters %}
+      <a class="chapter-list-item" href="{{ chapter.url }}">
+        <span class="chapter-list-num">Ch. {{ chapter.data.chapter_number }}</span>
+        <div class="chapter-list-body">
+          <div class="chapter-list-title">{{ chapter.data.title }}</div>
+          {% if chapter.data.arc or chapter.data.publication_date %}
+          <div class="chapter-list-meta">
+            {% if chapter.data.arc %}{{ chapter.data.arc }}{% endif %}
+            {% if chapter.data.arc and chapter.data.publication_date %} · {% endif %}
+            {% if chapter.data.publication_date %}{{ chapter.data.publication_date | readableDate }}{% endif %}
+          </div>
+          {% endif %}
+          {% if chapter.data.summary %}
+          <p class="chapter-list-summary">{{ chapter.data.summary }}</p>
+          {% endif %}
+        </div>
+        <svg class="chapter-list-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="chapters-empty">No chapters published yet.</div>
+    {% endif %}
+
+  </div>
+</div>

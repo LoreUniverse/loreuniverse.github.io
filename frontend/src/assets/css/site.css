@@ -364,7 +364,7 @@ a { color: inherit; text-decoration: none; }
 .explore-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  column-gap: 1.25rem;
+  gap: 1.25rem;
 }
 .explore-card {
   position: relative;
@@ -372,11 +372,8 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--border);
   border-radius: 12px; padding: 2rem;
   overflow: hidden; cursor: pointer;
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 5;
-  row-gap: 0;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base);
 }
@@ -409,7 +406,7 @@ a { color: inherit; text-decoration: none; }
 .explore-card--gold   .card-tag { color: var(--gold);   }
 .explore-card--violet .card-tag { color: var(--violet); }
 .card-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.75rem; letter-spacing: 0.025em; }
-.card-desc  { font-family: var(--font-body); font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary); }
+.card-desc  { font-family: var(--font-body); font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary); flex: 1; }
 .card-arrow {
   display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 1.5rem;
   font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700;
@@ -511,7 +508,7 @@ a { color: inherit; text-decoration: none; }
 .wiki-hub-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  column-gap: 1.25rem;
+  gap: 1.25rem;
 }
 
 /* -----------------------------------------------------------------
@@ -652,18 +649,248 @@ a { color: inherit; text-decoration: none; }
 
 /* Wiki link token — show/hide driven by [data-wiki-links] on containing element */
 .wiki-link { color: var(--violet); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
-[data-wiki-links="hidden"] .wiki-link { display: none; }
-[data-wiki-links="hidden"] .wiki-link--hidden { display: none; }
+[data-wiki-links="false"] .wiki-link { display: none; }
+[data-wiki-links="false"] .wiki-link--hidden { display: none; }
+
+/* -----------------------------------------------------------------
+   Prose page (About, plain content pages)
+   ----------------------------------------------------------------- */
+.prose-page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 8rem 2rem 5rem;
+}
+.prose-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.75rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.03em;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.prose-page h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem; font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.03em;
+  margin: 2.5rem 0 0.75rem;
+}
+.prose-page h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--text-bright);
+  margin: 1.75rem 0 0.5rem;
+}
+.prose-page p {
+  font-family: var(--font-body); font-size: 1rem; line-height: 1.8;
+  color: var(--text-secondary); margin-bottom: 1.2rem;
+}
+.prose-page a { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.prose-page a:hover { color: var(--blue-light); }
+.prose-page hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.prose-page strong { color: var(--text-primary); }
+.prose-page ul, .prose-page ol { margin: 0.75rem 0 1.2rem 1.5rem; }
+.prose-page li { margin-bottom: 0.35rem; color: var(--text-secondary); font-size: 1rem; line-height: 1.8; }
+
+/* -----------------------------------------------------------------
+   Library hub page
+   ----------------------------------------------------------------- */
+.library-hub { padding: 8rem 0 6rem; }
+.library-hub-header { text-align: center; margin-bottom: 4rem; }
+.library-hub-eyebrow {
+  font-family: var(--font-ui); font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.75rem;
+}
+.library-hub-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.04em;
+  margin-bottom: 1rem;
+}
+.library-hub-lead {
+  font-family: var(--font-body); font-size: 1rem;
+  color: var(--text-secondary); max-width: 52ch; margin: 0 auto; line-height: 1.7;
+}
+.library-section { margin-bottom: 4rem; }
+.library-section-title {
+  font-family: var(--font-ui); font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 1.5rem;
+}
+.library-nav-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+/* Books listing */
+.books-page { padding: 8rem 0 6rem; }
+.books-page-header { margin-bottom: 3rem; }
+.books-page-back {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none; margin-bottom: 2rem;
+  transition: color var(--dur-fast);
+}
+.books-page-back:hover { color: var(--text-primary); }
+.books-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.04em;
+}
+.book-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px; padding: 2rem 2.5rem;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 2rem;
+}
+.book-card-meta { flex: 1; }
+.book-card-chip {
+  font-family: var(--font-ui); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: #07080e; background: var(--gold);
+  padding: 0.3rem 0.75rem; border-radius: 4px; display: inline-block;
+  margin-bottom: 0.875rem;
+}
+.book-card-title {
+  font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 1.65rem);
+  font-weight: 700; color: var(--text-bright); letter-spacing: 0.03em;
+  margin-bottom: 0.625rem;
+}
+.book-card-desc {
+  font-family: var(--font-body); font-size: 0.9rem; line-height: 1.7;
+  color: var(--text-secondary); max-width: 52ch;
+}
+
+/* Chapter listing */
+.chapters-page { padding: 8rem 0 6rem; }
+.chapters-page-header { margin-bottom: 3rem; }
+.chapters-page-back {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none; margin-bottom: 2rem;
+  transition: color var(--dur-fast);
+}
+.chapters-page-back:hover { color: var(--text-primary); }
+.chapters-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.04em; margin-bottom: 0.5rem;
+}
+.chapters-page-subtitle {
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+}
+.chapter-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.chapter-list-item {
+  display: flex; align-items: center; gap: 1.5rem;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem 1.5rem;
+  text-decoration: none;
+  transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base);
+}
+.chapter-list-item:hover {
+  border-color: rgba(245,158,11,0.3);
+  box-shadow: 0 4px 24px rgba(245,158,11,0.07);
+  transform: translateX(4px);
+}
+.chapter-list-num {
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold); min-width: 2.5rem; flex-shrink: 0;
+}
+.chapter-list-body { flex: 1; }
+.chapter-list-title {
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 700;
+  color: var(--text-bright); margin-bottom: 0.25rem; letter-spacing: 0.02em;
+}
+.chapter-list-meta {
+  font-family: var(--font-ui); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--text-muted);
+}
+.chapter-list-summary {
+  font-family: var(--font-body); font-size: 0.8rem; line-height: 1.6;
+  color: var(--text-muted); margin-top: 0.35rem;
+}
+.chapter-list-arrow { color: var(--text-faint); flex-shrink: 0; transition: color var(--dur-fast), transform var(--dur-fast); }
+.chapter-list-item:hover .chapter-list-arrow { color: var(--gold); transform: translateX(4px); }
+.chapters-empty {
+  padding: 3rem; text-align: center;
+  border: 1px dashed var(--border-med); border-radius: 10px;
+  font-family: var(--font-ui); font-size: 0.8rem; color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+/* -----------------------------------------------------------------
+   Account / Auth page
+   ----------------------------------------------------------------- */
+.auth-page {
+  max-width: 480px; margin: 0 auto;
+  padding: 7rem 2rem 4rem;
+}
+.auth-page > h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.04em;
+  text-align: center; margin-bottom: 2rem;
+}
+.tab-strip {
+  display: flex;
+  border-bottom: 1px solid var(--border-med);
+  margin-bottom: 1.75rem;
+}
+.tab-btn {
+  background: none; border: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-ui); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-muted); cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+.tab-btn[aria-selected="true"] { color: var(--text-bright); border-bottom-color: var(--blue); }
+.tab-btn:hover { color: var(--text-primary); }
+.form-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 2rem;
+}
+.form-group {
+  display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 1.25rem;
+}
+.form-group label {
+  font-family: var(--font-ui); font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary);
+}
+.form-group input {
+  background: var(--surface-1); border: 1px solid var(--border-med);
+  border-radius: 8px; padding: 0.75rem 1rem;
+  font-family: var(--font-body); font-size: 0.95rem; color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.form-group input:focus {
+  border-color: var(--blue); box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+}
+.form-group input::placeholder { color: var(--text-muted); }
+.form-card .btn-primary { width: 100%; justify-content: center; margin-top: 0.5rem; }
+.form-error {
+  font-family: var(--font-body); font-size: 0.825rem; color: #f87171;
+  min-height: 1.25rem; margin-bottom: 0.75rem; display: block;
+}
+.form-success {
+  font-family: var(--font-body); font-size: 0.875rem; color: #4ade80;
+  text-align: center; padding: 1rem;
+}
 
 /* -----------------------------------------------------------------
    Responsive
    ----------------------------------------------------------------- */
 @media (max-width: 900px) {
-  .explore-grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-  .explore-card { display: flex; flex-direction: column; grid-row: unset; row-gap: unset; }
-  .card-desc { flex: 1; }
+  .explore-grid { grid-template-columns: 1fr 1fr; }
   .wiki-grid { grid-template-columns: 1fr 1fr; }
-  .wiki-hub-grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .wiki-hub-grid { grid-template-columns: 1fr 1fr; }
   .nav-menu-btn { display: flex; align-items: center; }
   .nav-links { display: none; }
   .nav-account { display: none; }
@@ -675,4 +902,7 @@ a { color: inherit; text-decoration: none; }
   .chapter-card { flex-direction: column; padding: 1.75rem; }
   .hero-ctas { flex-direction: column; align-items: center; }
   .hero { padding: 7rem 1.25rem 5rem; }
+  .library-nav-grid { grid-template-columns: 1fr; }
+  .book-card { flex-direction: column; gap: 1.25rem; }
+  .chapter-list-item { gap: 0.875rem; }
 }

@@ -1,6 +1,7 @@
 ---
 title: About
 layout: base.njk
+content_class: prose-page
 ---
 
 # About Lore Universe

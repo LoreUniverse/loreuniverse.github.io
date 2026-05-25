@@ -1,3 +1,4 @@
 {
-  "layout": "chapter.njk"
+  "layout": "chapter.njk",
+  "permalink": "/library/books/book1/chapters/{{ page.fileSlug }}/"
 }

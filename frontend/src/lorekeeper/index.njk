@@ -1,0 +1,94 @@
+---
+title: Library
+layout: base.njk
+permalink: /library/
+---
+{#
+  lorekeeper/index.njk — Library landing page
+  Shows a hub for the Novels module: latest chapter + nav cards to Books and Wiki.
+#}
+
+{% set latestChapter = collections.chapters | sort(false, false, "data.publication_date") | last %}
+
+<div class="library-hub">
+  <div class="container">
+
+    <div class="library-hub-header">
+      <p class="library-hub-eyebrow">The Novels Module</p>
+      <h1 class="library-hub-title">The Library</h1>
+      <p class="library-hub-lead">
+        A serialized sci-fi/fantasy novel and a companion wiki for its universe.
+        Follow the story from the beginning — new chapters, living worlds, and a universe in motion.
+      </p>
+    </div>
+
+    {# Latest Chapter #}
+    <div class="library-section">
+      <p class="library-section-title">Now Reading</p>
+      {% if latestChapter %}
+      <div class="chapter-card">
+        <div>
+          <div class="chapter-meta">
+            <span class="chapter-chip">Chapter {{ latestChapter.data.chapter_number }}</span>
+            {% if latestChapter.data.arc %}<span class="chapter-book">{{ latestChapter.data.arc }}</span>{% endif %}
+          </div>
+          <h2 class="chapter-title">{{ latestChapter.data.title }}</h2>
+          {% if latestChapter.data.summary %}
+          <p class="chapter-excerpt">{{ latestChapter.data.summary }}</p>
+          {% endif %}
+        </div>
+        <div style="flex-shrink:0">
+          <a class="btn-secondary" href="{{ latestChapter.url }}">Start Reading</a>
+        </div>
+      </div>
+      {% else %}
+      <div class="chapter-card">
+        <div>
+          <div class="chapter-meta"><span class="chapter-chip">Coming Soon</span></div>
+          <h2 class="chapter-title">The story is being written.</h2>
+          <p class="chapter-excerpt">The first chapter of Book 1 is on its way.</p>
+        </div>
+        <div style="flex-shrink:0">
+          <a class="btn-secondary" href="/library/books/book1/chapters/">Browse Chapters</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {# Navigation cards #}
+    <p class="library-section-title">Explore</p>
+    <div class="library-nav-grid">
+      <a class="explore-card explore-card--gold" href="/library/books/book1/chapters/"
+        aria-label="Books — Read the chapters">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="5" y="5" width="30" height="30" rx="3" stroke="rgba(245,158,11,0.25)" stroke-width="1"/>
+          <path d="M11 13h18M11 19h18M11 25h11" stroke="rgba(245,158,11,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">Books · Chapters</div>
+        <h3 class="card-title">Read the Story</h3>
+        <p class="card-desc">Browse all books and chapters. Follow the serialized fiction from the beginning.</p>
+        <div class="card-arrow">
+          Browse Chapters
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a class="explore-card explore-card--violet" href="/wiki/"
+        aria-label="Wiki — The World Compendium">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 3 L35.5 12 L35.5 30 L20 39 L4.5 30 L4.5 12 Z" stroke="rgba(192,132,252,0.25)" stroke-width="1" fill="none"/>
+          <circle cx="20" cy="21" r="6.5" stroke="rgba(192,132,252,0.55)" stroke-width="1" fill="rgba(192,132,252,0.06)"/>
+          <circle cx="20" cy="21" r="2.25" fill="rgba(192,132,252,0.85)"/>
+        </svg>
+        <div class="card-tag">Compendium · Wiki</div>
+        <h3 class="card-title">World Compendium</h3>
+        <p class="card-desc">Characters, factions, locations, and the laws governing existence — fully documented.</p>
+        <div class="card-arrow">
+          Open the Wiki
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</div>

@@ -64,7 +64,7 @@
 </nav>
 
 <main>
-  {{ content | safe }}
+  {% if content_class %}<div class="{{ content_class }}">{{ content | safe }}</div>{% else %}{{ content | safe }}{% endif %}
 </main>
 
 <footer class="site-footer" role="contentinfo">

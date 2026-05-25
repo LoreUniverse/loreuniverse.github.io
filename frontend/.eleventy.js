@@ -60,28 +60,36 @@ module.exports = function(eleventyConfig) {
   // The `data` property of each item in a collection contains the YAML
   // front matter fields defined in that entry's .md file.
 
+  // Wiki entry collections: only include files that have a `name` field
+  // (excludes category index.md files which use `title` instead).
   eleventyConfig.addCollection("characters", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/characters/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/characters/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("loreTraits", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/lore-traits/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/lore-traits/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("mechanics", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/mechanics/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/mechanics/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("locations", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/locations/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/locations/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("factions", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/factions/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/factions/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("lore", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/wiki/lore/*.md");
+    return collectionApi.getFilteredByGlob("src/wiki/lore/*.md")
+      .filter(item => item.data.name);
   });
 
   eleventyConfig.addCollection("chapters", function(collectionApi) {

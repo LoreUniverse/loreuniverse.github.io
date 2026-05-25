@@ -1,0 +1,41 @@
+---
+title: Books
+layout: base.njk
+permalink: /library/books/
+---
+{#
+  lorekeeper/books/index.njk — Books listing page
+  Lists all books in the library. Currently hand-listed (one book).
+  When a second book is added, replace with a collection-driven loop.
+#}
+
+<div class="books-page">
+  <div class="container">
+
+    <div class="books-page-header">
+      <a class="books-page-back" href="/library/">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Library
+      </a>
+      <h1 class="books-page-title">Books</h1>
+    </div>
+
+    {# Book 1 #}
+    <div class="book-card">
+      <div class="book-card-meta">
+        <span class="book-card-chip">Book 1</span>
+        <h2 class="book-card-title">Lorekeeper</h2>
+        <p class="book-card-desc">
+          The first book in the series.
+          Follow the story from the beginning — new chapters added as the universe grows.
+        </p>
+      </div>
+      <div style="flex-shrink:0">
+        <a class="btn-secondary" href="/library/books/book1/chapters/">Read Chapters</a>
+      </div>
+    </div>
+
+  </div>
+</div>
