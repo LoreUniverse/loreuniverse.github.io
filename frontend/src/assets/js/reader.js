@@ -1,101 +1,139 @@
 (function () {
-  var ROOT      = document.documentElement;
-  var THEME_KEY = 'lr-theme';
-  var SIZE_KEY  = 'lr-font-size';
-  var WIKI_KEY  = 'lr-wiki-links';
+  'use strict';
 
+  var PROSE      = null; // set on DOMContentLoaded
+  var WRAP       = null;
+  var SIZE_KEY   = 'lr-font-size';
+  var WIKI_KEY   = 'lr-wiki-links';
+  var THEME_KEY  = 'lr-reader-theme';
+
+  var FONT_SIZES = { sm: '15px', md: '18px', lg: '22px' };
+
+  // ---- Font size -------------------------------------------------------
   function setFontSize(size) {
-    ROOT.dataset.fontSize = size;
+    if (!FONT_SIZES[size]) return;
+    if (PROSE) PROSE.style.setProperty('--reader-font-size', FONT_SIZES[size]);
     localStorage.setItem(SIZE_KEY, size);
-    document.querySelectorAll('[data-font-size-btn]').forEach(function (btn) {
-      btn.setAttribute('aria-pressed', btn.dataset.fontSizeBtn === size ? 'true' : 'false');
+    document.querySelectorAll('[data-font-size]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.dataset.fontSize === size ? 'true' : 'false');
     });
   }
 
+  // ---- Wiki links -------------------------------------------------------
+  function setWikiLinks(show) {
+    var prose = PROSE || document.querySelector('.reader-prose');
+    if (prose) {
+      var section = prose.querySelector('[data-wiki-links]');
+      if (section) section.dataset.wikiLinks = show ? 'true' : 'false';
+    }
+    localStorage.setItem(WIKI_KEY, show ? 'true' : 'false');
+    document.querySelectorAll('[data-wiki-links-btn]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.dataset.wikiLinksBtn === (show ? 'show' : 'hide') ? 'true' : 'false');
+    });
+  }
+
+  // ---- Theme -----------------------------------------------------------
   function setTheme(theme) {
-    ROOT.dataset.theme = theme;
+    if (WRAP) WRAP.dataset.readerTheme = theme;
+    document.documentElement.dataset.readerTheme = theme;
     localStorage.setItem(THEME_KEY, theme);
-    var btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    document.querySelectorAll('[data-theme-btn]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.dataset.themeBtn === theme ? 'true' : 'false');
+    });
   }
 
-  function setWikiLinks(visible) {
-    if (visible) {
-      delete ROOT.dataset.wikiLinks;
-    } else {
-      ROOT.dataset.wikiLinks = 'hidden';
+  // ---- Settings popover -----------------------------------------------
+  function openSettings() {
+    var popover = document.getElementById('reader-settings');
+    var btn     = document.getElementById('reader-settings-btn');
+    if (!popover || !btn) return;
+    popover.classList.add('reader-settings--open');
+    btn.setAttribute('aria-expanded', 'true');
+    var first = popover.querySelector('button');
+    if (first) first.focus();
+  }
+
+  function closeSettings() {
+    var popover = document.getElementById('reader-settings');
+    var btn     = document.getElementById('reader-settings-btn');
+    if (!popover) return;
+    popover.classList.remove('reader-settings--open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (btn) btn.focus();
+  }
+
+  function isSettingsOpen() {
+    var popover = document.getElementById('reader-settings');
+    return popover && popover.classList.contains('reader-settings--open');
+  }
+
+  // Focus trap inside settings dialog
+  function trapFocus(e) {
+    if (!isSettingsOpen()) return;
+    var popover  = document.getElementById('reader-settings');
+    if (!popover) return;
+    var focusable = Array.from(popover.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])'));
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last  = focusable[focusable.length - 1];
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     }
-    localStorage.setItem(WIKI_KEY, visible ? 'true' : 'false');
-    var btn = document.getElementById('wiki-links-toggle');
-    if (btn) btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
   }
 
-  // Sync button visual states to the data attributes already applied by the
-  // anti-FOUC inline script in <head>.
+  // ---- Sync state to UI -----------------------------------------------
   function syncState() {
-    var size  = ROOT.dataset.fontSize || 'md';
-    var theme = ROOT.dataset.theme    || 'light';
+    var size  = localStorage.getItem(SIZE_KEY)  || 'md';
+    var wiki  = localStorage.getItem(WIKI_KEY);
+    var theme = localStorage.getItem(THEME_KEY) || 'dark';
+    var showWiki = wiki !== 'false';
 
-    document.querySelectorAll('[data-font-size-btn]').forEach(function (btn) {
-      btn.setAttribute('aria-pressed', btn.dataset.fontSizeBtn === size ? 'true' : 'false');
+    setFontSize(size);
+    setWikiLinks(showWiki);
+    setTheme(theme);
+  }
+
+  // ---- Init -----------------------------------------------------------
+  document.addEventListener('DOMContentLoaded', function () {
+    PROSE = document.getElementById('reader-prose');
+    WRAP  = document.getElementById('reader-wrap');
+
+    syncState();
+
+    // Delegated click handler
+    document.addEventListener('click', function (e) {
+      // Font size
+      var sizeBtn = e.target.closest('[data-font-size]');
+      if (sizeBtn) { setFontSize(sizeBtn.dataset.fontSize); return; }
+
+      // Wiki links
+      var wikiBtn = e.target.closest('[data-wiki-links-btn]');
+      if (wikiBtn) { setWikiLinks(wikiBtn.dataset.wikiLinksBtn === 'show'); return; }
+
+      // Theme
+      var themeBtn = e.target.closest('[data-theme-btn]');
+      if (themeBtn) { setTheme(themeBtn.dataset.themeBtn); return; }
+
+      // Settings toggle
+      if (e.target.closest('#reader-settings-btn')) {
+        if (isSettingsOpen()) closeSettings(); else openSettings();
+        return;
+      }
+
+      // Click outside settings — close
+      if (isSettingsOpen() && !e.target.closest('#reader-settings') && !e.target.closest('#reader-settings-btn')) {
+        closeSettings();
+      }
     });
 
-    var themeBtn = document.getElementById('theme-toggle');
-    if (themeBtn) themeBtn.textContent = theme === 'dark' ? 'Light' : 'Dark';
-
-    var wikiBtn = document.getElementById('wiki-links-toggle');
-    if (wikiBtn) {
-      wikiBtn.setAttribute('aria-pressed', ROOT.dataset.wikiLinks === 'hidden' ? 'false' : 'true');
-    }
-  }
-
-  // Hide the pill when scrolling down, reveal it when scrolling up.
-  // Uses rAF throttling and a small threshold to avoid jitter.
-  function initScrollHide() {
-    var pill = document.querySelector('.reader-controls');
-    if (!pill) return;
-
-    var lastY   = window.scrollY;
-    var ticking = false;
-
-    window.addEventListener('scroll', function () {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        var y = window.scrollY;
-        if (y < 80) {
-          // Always show near the top of the page.
-          pill.classList.remove('reader-controls--hidden');
-        } else if (y > lastY + 6) {
-          // Scrolling down — slide out.
-          pill.classList.add('reader-controls--hidden');
-        } else if (y < lastY - 6) {
-          // Scrolling up — slide back in.
-          pill.classList.remove('reader-controls--hidden');
-        }
-        lastY   = y;
-        ticking = false;
-      });
-    }, { passive: true });
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    syncState();
-    initScrollHide();
-
-    document.addEventListener('click', function (e) {
-      var sizeBtn = e.target.closest('[data-font-size-btn]');
-      if (sizeBtn) {
-        setFontSize(sizeBtn.dataset.fontSizeBtn);
-        return;
-      }
-      if (e.target.closest('#theme-toggle')) {
-        setTheme(ROOT.dataset.theme === 'dark' ? 'light' : 'dark');
-        return;
-      }
-      if (e.target.closest('#wiki-links-toggle')) {
-        setWikiLinks(ROOT.dataset.wikiLinks === 'hidden');
-      }
+    // Keyboard: Escape closes settings
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isSettingsOpen()) { closeSettings(); return; }
+      trapFocus(e);
     });
   });
 })();
