@@ -1,0 +1,22 @@
+---
+layout: base.njk
+---
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js" defer></script>
+
+<div class="admin-shell">
+  <nav class="admin-sidebar" aria-label="Admin navigation">
+    <ul class="admin-nav">
+      <li><a class="admin-nav__link" href="/admin/">Dashboard</a></li>
+      <li><a class="admin-nav__link" href="/admin/wiki/">Wiki</a></li>
+      <li><a class="admin-nav__link" href="/admin/users/">Users</a></li>
+      <li><a class="admin-nav__link" href="/admin/applications/">Applications</a></li>
+      <li><a class="admin-nav__link" href="/admin/tokens/">Tokens</a></li>
+      <li><a class="admin-nav__link" href="/admin/audit/">Audit Log</a></li>
+    </ul>
+  </nav>
+
+  <main class="admin-content">
+    {{ content | safe }}
+  </main>
+</div>
