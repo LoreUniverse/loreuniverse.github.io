@@ -41,7 +41,11 @@
       <li><a href="/about/">About</a></li>
     </ul>
 
-    <a class="nav-account" href="/account/" id="nav-account-btn">Account</a>
+    <div class="nav-account-wrap" id="nav-account">
+      <button class="nav-account" id="nav-account-btn" type="button"
+        aria-haspopup="menu" aria-expanded="false">Account</button>
+      <ul class="nav-account-menu" id="nav-account-menu" role="menu" hidden></ul>
+    </div>
 
     <button class="nav-menu-btn" id="nav-menu-btn"
       aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-mobile">
@@ -82,23 +86,45 @@
 
 <script>
   (function () {
+    // Mobile nav toggle
     var btn  = document.getElementById('nav-menu-btn');
     var menu = document.getElementById('nav-mobile');
-    if (!btn || !menu) return;
-    btn.addEventListener('click', function () {
-      var open = menu.classList.toggle('nav-mobile--open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
+    if (btn && menu) {
+      btn.addEventListener('click', function () {
+        var open = menu.classList.toggle('nav-mobile--open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+
+    // Account dropdown toggle
+    var acctBtn  = document.getElementById('nav-account-btn');
+    var acctMenu = document.getElementById('nav-account-menu');
+    if (acctBtn && acctMenu) {
+      acctBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var willOpen = acctMenu.hidden;
+        acctMenu.hidden = !willOpen;
+        acctBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      });
+    }
+
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.nav')) {
+      // Close mobile nav
+      if (menu && !e.target.closest('.nav')) {
         menu.classList.remove('nav-mobile--open');
-        btn.setAttribute('aria-expanded', 'false');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+      // Close account dropdown
+      if (acctMenu && !e.target.closest('.nav-account-wrap')) {
+        acctMenu.hidden = true;
+        if (acctBtn) acctBtn.setAttribute('aria-expanded', 'false');
       }
     });
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        menu.classList.remove('nav-mobile--open');
-        btn.setAttribute('aria-expanded', 'false');
+        if (menu) { menu.classList.remove('nav-mobile--open'); if (btn) btn.setAttribute('aria-expanded', 'false'); }
+        if (acctMenu) { acctMenu.hidden = true; if (acctBtn) acctBtn.setAttribute('aria-expanded', 'false'); }
       }
     });
   })();

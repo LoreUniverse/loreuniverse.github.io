@@ -107,7 +107,15 @@ export async function signIn(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  if (!result.error) clearCachedSession();
+  if (!result.error) {
+    // Cache the session from the sign-in response immediately so the nav
+    // updates on the next page even if the cookie round-trip is slow.
+    if (result.data?.user) {
+      setCachedSession(result.data);
+    } else {
+      clearCachedSession();
+    }
+  }
   return result;
 }
 
@@ -189,8 +197,6 @@ function updateNav(session) {
     `;
   }
 
-  // Reveal the button — was visibility:hidden to prevent FOUC
-  accountItem.style.visibility = '';
 }
 
 // ---------------------------------------------------------------------------
