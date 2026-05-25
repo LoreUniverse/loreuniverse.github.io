@@ -1,16 +1,8 @@
 {#
-  base.njk
-  Root layout — wraps every page on the site.
-  All other templates extend this one using `layout: base.njk` in their
-  front matter or directory data file.
-
-  Available variables:
-    title       — page title, set in each page's front matter
-    content     — the rendered HTML output of the child template, injected
-                  into the <main> block via the `safe` filter (which tells
-                  Nunjucks not to escape the HTML)
-    navigation  — global nav data from src/_data/navigation.js
-    site        — global site data from src/_data/site.js
+  base.njk — V2
+  Root layout for all non-reader pages.
+  Always dark — no data-theme switching.
+  Loads site.css (which imports tokens.css).
 #}
 <!DOCTYPE html>
 <html lang="en">
@@ -18,151 +10,101 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title or name }} | Lore Universe</title>
-  {# wiki-links-default seeds the reader's first-visit wiki link preference.
-     Subsequent visits use the value stored in localStorage instead. #}
-  <meta name="wiki-links-default" content="{{ config.wikiLinksVisible }}">
-  <link rel="stylesheet" href="/assets/css/reader.css">
-
-  {#
-    Anti-FOUC: apply saved theme, font-size, and wiki-link visibility before
-    first paint so the page never flickers on load.
-    Must run synchronously in <head>. The meta tag above is parsed before
-    this script runs, so it is safe to read here.
-  #}
-  <script>
-    (function () {
-      var t = localStorage.getItem('lr-theme') ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      var f = localStorage.getItem('lr-font-size') || 'md';
-      document.documentElement.dataset.theme    = t;
-      document.documentElement.dataset.fontSize = f;
-
-      var storedWiki = localStorage.getItem('lr-wiki-links');
-      if (storedWiki !== null) {
-        if (storedWiki === 'false') document.documentElement.dataset.wikiLinks = 'hidden';
-      } else {
-        var meta = document.querySelector('meta[name="wiki-links-default"]');
-        if (meta && meta.content === 'false') {
-          document.documentElement.dataset.wikiLinks = 'hidden';
-        }
-      }
-    })();
-  </script>
+  <link rel="stylesheet" href="/assets/css/site.css">
 </head>
 <body>
 
-  <header>
-    <nav aria-label="Primary">
-      <ul class="nav__list">
-        {% for item in navigation %}
-          <li class="nav__item">
-            <a class="nav__link" href="{{ item.href }}">{{ item.label }}</a>
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
 
-            {% if item.submenu %}
-              {#
-                Chevron button is a sibling of the label link, NOT a wrapper
-                around it. This keeps the label as a real navigable link
-                while the chevron is the dedicated dropdown trigger.
-              #}
-              <button
-                class="nav__toggle"
-                type="button"
-                aria-expanded="false"
-                aria-controls="nav-submenu-{{ loop.index }}"
-                aria-label="Toggle {{ item.label }} submenu"
-                data-nav-toggle
-              >▾</button>
+    <a class="nav-brand" href="/" aria-label="Lore Universe — Home">
+      <svg class="nav-sigil" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20 2.5 L36.5 11.5 L36.5 29.5 L20 38.5 L3.5 29.5 L3.5 11.5 Z"
+          stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/>
+        <path d="M20 2.5 L3.5 11.5 L3.5 29.5 L20 38.5 Z"
+          fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.35)" stroke-width="0.75"/>
+        <path d="M20 2.5 L36.5 11.5 L36.5 29.5 L20 38.5 Z"
+          fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.35)" stroke-width="0.75"/>
+        <line x1="20" y1="2.5" x2="20" y2="38.5"
+          stroke="rgba(255,255,255,0.1)" stroke-width="0.5" stroke-dasharray="2.5 2.5"/>
+        <circle cx="20" cy="20.5" r="3.5" fill="rgba(192,132,252,0.75)"/>
+        <circle cx="3.5"  cy="11.5" r="1.25" fill="rgba(56,189,248,0.55)"/>
+        <circle cx="36.5" cy="11.5" r="1.25" fill="rgba(245,158,11,0.55)"/>
+      </svg>
+      <span class="nav-wordmark">Lore Universe</span>
+    </a>
 
-              <ul
-                id="nav-submenu-{{ loop.index }}"
-                class="nav__submenu"
-                hidden
-              >
-                {% for sub in item.submenu %}
-                  <li class="nav__subitem">
-                    <a class="nav__sublink" href="{{ sub.href }}">{{ sub.label }}</a>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          </li>
-        {% endfor %}
+    <ul class="nav-links" role="list">
+      <li><a href="/">Home</a></li>
+      <li><a href="/library/">Library</a></li>
+      <li><a href="/wiki/">Wiki</a></li>
+      <li><a href="/about/">About</a></li>
+    </ul>
 
-          {#
-            Account button — outside the data loop because its content is JS-driven.
-            Starts hidden (visibility:hidden preserves layout space) and is revealed
-            by auth.js after the session check resolves, preventing any flicker.
-          #}
-          <li class="nav__item nav__item--account" id="nav-account" style="visibility:hidden">
-            <button
-              class="nav__account-btn"
-              id="nav-account-btn"
-              type="button"
-              aria-expanded="false"
-              aria-controls="nav-account-menu"
-              data-nav-toggle
-            >Account</button>
-            <ul
-              class="nav__submenu"
-              id="nav-account-menu"
-              hidden
-            >
-              <li class="nav__subitem"><a class="nav__sublink" href="/account/">Sign in</a></li>
-              <li class="nav__subitem"><a class="nav__sublink" href="/account/?tab=register">Register</a></li>
-            </ul>
-          </li>
-      </ul>
-    </nav>
-  </header>
+    <a class="nav-account" href="/account/" id="nav-account-btn">Account</a>
 
-  <main>
-    {{ content | safe }}
-  </main>
+    <button class="nav-menu-btn" id="nav-menu-btn"
+      aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-mobile">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="2" y="5"    width="16" height="1.5" rx="0.75" fill="currentColor"/>
+        <rect x="2" y="9.25" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+        <rect x="2" y="13.5" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+      </svg>
+    </button>
 
-  <footer>
-    <p>&copy; Lore Universe. All rights reserved.</p>
-  </footer>
+  </div>
 
-  {#
-    Dropdown behavior. Click chevron to toggle, click outside to close,
-    Escape to close. Click-to-open (not hover) so touch devices work.
-  #}
-  <script>
-    (function () {
-      const toggles = document.querySelectorAll('[data-nav-toggle]');
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="/">Home</a>
+    <a href="/library/">Library</a>
+    <a href="/wiki/">Wiki</a>
+    <a href="/about/">About</a>
+    <a href="/account/">Account</a>
+  </div>
+</nav>
 
-      function closeAll() {
-        toggles.forEach(t => {
-          t.setAttribute('aria-expanded', 'false');
-          const submenu = t.nextElementSibling;
-          if (submenu) submenu.hidden = true;
-        });
+<main>
+  {{ content | safe }}
+</main>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-row">
+      <div class="footer-rule"></div>
+      <span class="footer-rune" aria-hidden="true">⬡</span>
+      <span class="footer-brand">Lore Universe</span>
+      <span class="footer-rune" aria-hidden="true">⬡</span>
+      <div class="footer-rule"></div>
+    </div>
+    <p class="footer-copy">&copy; 2025 Lore Universe. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn  = document.getElementById('nav-menu-btn');
+    var menu = document.getElementById('nav-mobile');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function () {
+      var open = menu.classList.toggle('nav-mobile--open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.nav')) {
+        menu.classList.remove('nav-mobile--open');
+        btn.setAttribute('aria-expanded', 'false');
       }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        menu.classList.remove('nav-mobile--open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+</script>
 
-      toggles.forEach(toggle => {
-        toggle.addEventListener('click', e => {
-          e.stopPropagation();
-          const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-          closeAll();
-          if (!isOpen) {
-            toggle.setAttribute('aria-expanded', 'true');
-            toggle.nextElementSibling.hidden = false;
-          }
-        });
-      });
-
-      document.addEventListener('click', e => {
-        if (!e.target.closest('.nav__item')) closeAll();
-      });
-
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeAll();
-      });
-    })();
-  </script>
-
-  <script src="/assets/js/reader.js" defer></script>
-  <script type="module" src="/assets/js/auth.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
 
 </body>
 </html>
