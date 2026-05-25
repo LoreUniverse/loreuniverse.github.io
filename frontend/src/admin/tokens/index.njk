@@ -1,0 +1,158 @@
+---
+title: Admin — Tokens
+---
+
+<div x-data="tokensAdmin()" x-init="init()">
+  <h1>API Tokens</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+
+    <section class="admin-section">
+      <h2>Create Token</h2>
+      <div class="admin-form-row">
+        <input
+          type="text"
+          placeholder="Token name"
+          x-model="newTokenName"
+          class="admin-input"
+          style="width:220px;"
+          maxlength="64"
+        >
+        <button
+          class="btn-primary"
+          type="button"
+          style="min-height:38px;padding:0 1.25rem;font-size:0.75rem;"
+          :disabled="creating || !newTokenName.trim()"
+          @click="createToken()"
+          x-text="creating ? 'Creating…' : 'Create Token'"
+        ></button>
+      </div>
+
+      <div x-show="newPlaintext" class="admin-plaintext-box">
+        <strong>Copy this token now — it will not be shown again:</strong>
+        <code x-text="newPlaintext"></code>
+        <button
+          class="btn-secondary"
+          type="button"
+          style="min-height:34px;padding:0 0.875rem;font-size:0.7rem;"
+          @click="navigator.clipboard.writeText(newPlaintext)"
+        >Copy</button>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>Existing Tokens</h2>
+      <p x-show="tokens.length === 0" style="color:var(--text-muted);font-size:0.84rem;">No tokens yet.</p>
+
+      <table class="admin-table" x-show="tokens.length > 0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Preview</th>
+            <th>Created</th>
+            <th>Last Used</th>
+            <th>Expires</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="token in tokens" :key="token.id">
+            <tr>
+              <td x-text="token.name"></td>
+              <td><code x-text="token.tokenPreview"></code></td>
+              <td x-text="new Date(token.createdAt).toLocaleDateString()"></td>
+              <td x-text="token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString() : '—'"></td>
+              <td x-text="token.expiresAt ? new Date(token.expiresAt).toLocaleDateString() : 'Never'"></td>
+              <td>
+                <button
+                  class="btn-danger"
+                  type="button"
+                  @click="revoke(token)"
+                >Revoke</button>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+
+function tokensAdmin() {
+  return {
+    loading: true,
+    error: null,
+    tokens: [],
+    newTokenName: '',
+    creating: false,
+    newPlaintext: '',
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+      await this.loadTokens();
+    },
+
+    async loadTokens() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch(API + '/api/account/api-tokens', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load tokens');
+        this.tokens = await res.json();
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createToken() {
+      this.creating = true;
+      this.newPlaintext = '';
+      try {
+        const res = await fetch(API + '/api/account/api-tokens', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: this.newTokenName.trim() }),
+        });
+        if (!res.ok) throw new Error('Token creation failed');
+        const data = await res.json();
+        this.newPlaintext = data.plaintext;
+        this.newTokenName = '';
+        await this.loadTokens();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        this.creating = false;
+      }
+    },
+
+    async revoke(token) {
+      if (!confirm(`Revoke token "${token.name}"?`)) return;
+      try {
+        const res = await fetch(API + `/api/account/api-tokens/${token.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Revoke failed');
+        this.tokens = this.tokens.filter(t => t.id !== token.id);
+      } catch (err) {
+        alert(err.message);
+      }
+    },
+  };
+}
+</script>

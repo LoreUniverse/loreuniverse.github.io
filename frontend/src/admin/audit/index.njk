@@ -1,0 +1,118 @@
+---
+title: Admin — Audit Log
+---
+
+<div x-data="auditAdmin()" x-init="init()">
+  <h1>Audit Log</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+    <div class="admin-form-row">
+      <input
+        type="text"
+        placeholder="Filter by action…"
+        x-model="filter"
+        class="admin-input"
+        style="width:260px;"
+      >
+      <span style="color:var(--text-faint);font-size:0.8rem;">
+        <span x-text="filtered.length"></span> of <span x-text="entries.length"></span> entries
+      </span>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Metadata</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="entry in filtered" :key="entry.id">
+          <tr>
+            <td x-text="new Date(entry.createdAt).toLocaleString()"></td>
+            <td x-text="entry.actorUserId ?? '—'"></td>
+            <td><code x-text="entry.action"></code></td>
+            <td x-text="entry.targetType ? entry.targetType + ' ' + (entry.targetId ?? '') : '—'"></td>
+            <td>
+              <template x-if="entry.metadata">
+                <details>
+                  <summary style="cursor:pointer;color:var(--blue);font-size:0.78rem;">View</summary>
+                  <pre style="font-size:0.72rem;color:var(--text-muted);white-space:pre-wrap;margin:0.4rem 0 0;" x-text="JSON.stringify(JSON.parse(entry.metadata), null, 2)"></pre>
+                </details>
+              </template>
+              <template x-if="!entry.metadata">
+                <span>—</span>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+
+    <div class="admin-pagination" x-show="total > limit">
+      <button class="btn-secondary" type="button" style="min-height:36px;padding:0 1rem;font-size:0.72rem;" :disabled="page === 1" @click="goPage(page - 1)">Previous</button>
+      <span>Page <span x-text="page"></span> of <span x-text="Math.ceil(total / limit)"></span></span>
+      <button class="btn-secondary" type="button" style="min-height:36px;padding:0 1rem;font-size:0.72rem;" :disabled="page * limit >= total" @click="goPage(page + 1)">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+
+function auditAdmin() {
+  return {
+    loading: true,
+    error: null,
+    entries: [],
+    total: 0,
+    page: 1,
+    limit: 50,
+    filter: '',
+
+    get filtered() {
+      const f = this.filter.trim().toLowerCase();
+      if (!f) return this.entries;
+      return this.entries.filter(e => e.action.toLowerCase().includes(f));
+    },
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+      await this.loadPage(1);
+    },
+
+    async loadPage(p) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch(
+          API + `/api/admin/audit?page=${p}&limit=${this.limit}`,
+          { credentials: 'include' },
+        );
+        if (!res.ok) throw new Error('Failed to load audit log');
+        const data = await res.json();
+        this.entries = data.entries;
+        this.total   = data.total;
+        this.page    = data.page;
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    goPage(p) { this.loadPage(p); },
+  };
+}
+</script>

@@ -1,0 +1,122 @@
+---
+title: Admin — Wiki
+---
+
+<div x-data="wikiAdmin()" x-init="init()">
+  <h1>Wiki Management</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+    <p style="margin-bottom:1.25rem; color:var(--text-muted); font-size:0.84rem;">
+      <span x-text="entries.length"></span> entries total —
+      <span x-text="entries.filter(e => e.isPublished).length"></span> published
+    </p>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Slug</th>
+          <th>Name</th>
+          <th>Published</th>
+          <th>Unresolved Links</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="entry in entries" :key="entry.id">
+          <tr>
+            <td x-text="entry.category"></td>
+            <td x-text="entry.slug"></td>
+            <td x-text="entry.name"></td>
+            <td x-text="entry.isPublished ? 'Yes' : 'No'"></td>
+            <td>
+              <span
+                x-show="unresolvedCount(entry) > 0"
+                x-text="unresolvedCount(entry) + ' unresolved'"
+                class="admin-badge admin-badge--warn"
+              ></span>
+              <span x-show="unresolvedCount(entry) === 0">—</span>
+            </td>
+            <td>
+              <button
+                class="btn-secondary"
+                type="button"
+                style="min-height:36px; padding:0 1rem; font-size:0.72rem;"
+                :disabled="togglingId === entry.id"
+                @click="togglePublish(entry)"
+                x-text="entry.isPublished ? 'Unpublish' : 'Publish'"
+              ></button>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+const DOUBLE_BRACKET = /\[\[([^\]]+)\]\]/g;
+
+function wikiAdmin() {
+  return {
+    loading: true,
+    error: null,
+    entries: [],
+    togglingId: null,
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+
+      try {
+        const res = await fetch(API + '/api/admin/wiki', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load wiki entries');
+        this.entries = await res.json();
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    unresolvedCount(entry) {
+      return (entry.body.match(DOUBLE_BRACKET) ?? []).length;
+    },
+
+    async togglePublish(entry) {
+      this.togglingId = entry.id;
+      const previous = entry.isPublished;
+      entry.isPublished = !previous;
+      try {
+        const res = await fetch(
+          API + `/api/admin/wiki/${entry.category}/${entry.slug}`,
+          {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isPublished: entry.isPublished }),
+          },
+        );
+        if (!res.ok) {
+          entry.isPublished = previous;
+          const err = await res.json().catch(() => ({}));
+          alert('Error: ' + (err?.error?.message ?? res.status));
+        }
+      } catch (err) {
+        entry.isPublished = previous;
+        alert('Network error: ' + err.message);
+      } finally {
+        this.togglingId = null;
+      }
+    },
+  };
+}
+</script>

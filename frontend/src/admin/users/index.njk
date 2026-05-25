@@ -1,0 +1,159 @@
+---
+title: Admin — Users
+---
+
+<div x-data="usersAdmin()" x-init="init()">
+  <h1>User Management</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+    <p style="margin-bottom:1.25rem; color:var(--text-muted); font-size:0.84rem;">
+      <span x-text="total"></span> users total
+    </p>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Banned</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="user in users" :key="user.id">
+          <tr>
+            <td x-text="user.name"></td>
+            <td x-text="user.email"></td>
+            <td>
+              <span class="admin-badge" :class="'admin-badge--' + user.role" x-text="user.role"></span>
+            </td>
+            <td x-text="user.isBanned ? 'Yes' : 'No'"></td>
+            <td x-text="new Date(user.createdAt).toLocaleDateString()"></td>
+            <td>
+              <template x-if="!user.isBanned">
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  <button
+                    class="btn-danger"
+                    type="button"
+                    @click="startBan(user)"
+                    x-show="banningId !== user.id"
+                  >Ban</button>
+                  <div x-show="banningId === user.id" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                    <input
+                      type="text"
+                      placeholder="Ban reason"
+                      x-model="banReason"
+                      class="admin-input"
+                      style="width:180px;"
+                    >
+                    <button class="btn-danger" type="button" @click="confirmBan(user)">Confirm</button>
+                    <button class="btn-secondary" type="button" style="min-height:36px;padding:0 0.75rem;font-size:0.72rem;" @click="banningId = null; banReason = ''">Cancel</button>
+                  </div>
+                </div>
+              </template>
+              <template x-if="user.isBanned">
+                <button class="btn-secondary" type="button" style="min-height:36px;padding:0 1rem;font-size:0.72rem;" @click="unban(user)">Unban</button>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+
+    <div class="admin-pagination" x-show="total > limit">
+      <button class="btn-secondary" type="button" style="min-height:36px;padding:0 1rem;font-size:0.72rem;" :disabled="page === 1" @click="goPage(page - 1)">Previous</button>
+      <span>Page <span x-text="page"></span></span>
+      <button class="btn-secondary" type="button" style="min-height:36px;padding:0 1rem;font-size:0.72rem;" :disabled="page * limit >= total" @click="goPage(page + 1)">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+
+function usersAdmin() {
+  return {
+    loading: true,
+    error: null,
+    users: [],
+    total: 0,
+    page: 1,
+    limit: 50,
+    banningId: null,
+    banReason: '',
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+      await this.loadPage(1);
+    },
+
+    async loadPage(p) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch(
+          API + `/api/admin/users?page=${p}&limit=${this.limit}`,
+          { credentials: 'include' },
+        );
+        if (!res.ok) throw new Error('Failed to load users');
+        const data = await res.json();
+        this.users = data.users;
+        this.total = data.total;
+        this.page  = data.page;
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    goPage(p) { this.loadPage(p); },
+
+    startBan(user) {
+      this.banningId = user.id;
+      this.banReason = '';
+    },
+
+    async confirmBan(user) {
+      if (!this.banReason.trim()) { alert('Reason is required.'); return; }
+      try {
+        const res = await fetch(API + `/api/admin/users/${user.id}/ban`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: this.banReason }),
+        });
+        if (!res.ok) throw new Error('Ban failed');
+        user.isBanned = true;
+        this.banningId = null;
+        this.banReason = '';
+      } catch (err) {
+        alert(err.message);
+      }
+    },
+
+    async unban(user) {
+      try {
+        const res = await fetch(API + `/api/admin/users/${user.id}/unban`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Unban failed');
+        user.isBanned = false;
+      } catch (err) {
+        alert(err.message);
+      }
+    },
+  };
+}
+</script>

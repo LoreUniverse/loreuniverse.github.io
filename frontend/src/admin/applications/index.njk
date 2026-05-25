@@ -1,0 +1,130 @@
+---
+title: Admin — Applications
+---
+
+<div x-data="applicationsAdmin()" x-init="init()">
+  <h1>Permission Applications</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+    <p x-show="applications.length === 0" style="color:var(--text-muted);font-size:0.84rem;">No pending applications.</p>
+
+    <div x-show="applications.length > 0">
+      <template x-for="application in applications" :key="application.id">
+        <div class="admin-card">
+          <div class="admin-card__header">
+            <strong x-text="application.permission"></strong>
+            <span class="admin-badge admin-badge--pending">pending</span>
+          </div>
+          <p class="admin-card__meta">
+            User: <span x-text="application.userId"></span> &mdash;
+            Submitted: <span x-text="new Date(application.createdAt).toLocaleDateString()"></span>
+          </p>
+          <p class="admin-card__body" x-text="application.justification"></p>
+          <div class="admin-card__actions">
+            <input
+              type="text"
+              placeholder="Optional review note"
+              x-model="notes[application.id]"
+              class="admin-input"
+              style="width:220px;"
+            >
+            <button
+              class="btn-primary"
+              type="button"
+              style="min-height:36px;padding:0 1rem;font-size:0.72rem;"
+              :disabled="processingId === application.id"
+              @click="approve(application)"
+            >Approve</button>
+            <button
+              class="btn-danger"
+              type="button"
+              :disabled="processingId === application.id"
+              @click="reject(application)"
+            >Reject</button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+
+function applicationsAdmin() {
+  return {
+    loading: true,
+    error: null,
+    applications: [],
+    notes: {},
+    processingId: null,
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          API + '/api/admin/permission-applications?status=pending',
+          { credentials: 'include' },
+        );
+        if (!res.ok) throw new Error('Failed to load applications');
+        this.applications = await res.json();
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async approve(application) {
+      this.processingId = application.id;
+      try {
+        const res = await fetch(
+          API + `/api/admin/permission-applications/${application.id}/approve`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note: this.notes[application.id] ?? '' }),
+          },
+        );
+        if (!res.ok) throw new Error('Approval failed');
+        this.applications = this.applications.filter(a => a.id !== application.id);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        this.processingId = null;
+      }
+    },
+
+    async reject(application) {
+      this.processingId = application.id;
+      try {
+        const res = await fetch(
+          API + `/api/admin/permission-applications/${application.id}/reject`,
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note: this.notes[application.id] ?? '' }),
+          },
+        );
+        if (!res.ok) throw new Error('Rejection failed');
+        this.applications = this.applications.filter(a => a.id !== application.id);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        this.processingId = null;
+      }
+    },
+  };
+}
+</script>

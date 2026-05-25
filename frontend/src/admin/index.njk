@@ -1,0 +1,118 @@
+---
+title: Admin — Dashboard
+---
+
+<div x-data="dashboard()" x-init="init()">
+  <h1>Dashboard</h1>
+
+  <p x-show="loading">Loading…</p>
+  <p x-show="error" x-text="error" class="admin-error"></p>
+
+  <div x-show="!loading && !error">
+
+    <section class="admin-section">
+      <h2>Health</h2>
+      <ul class="admin-health-list">
+        <template x-for="[mod, status] in Object.entries(health?.modules ?? {})">
+          <li class="admin-health-item">
+            <span
+              class="admin-health-dot"
+              :class="status.status === 'ok' ? 'admin-health-dot--ok' : 'admin-health-dot--down'"
+            ></span>
+            <span x-text="mod"></span>
+            <span x-show="status.latency_ms !== undefined" x-text="' ' + status.latency_ms + 'ms'" class="admin-health-latency"></span>
+          </li>
+        </template>
+      </ul>
+    </section>
+
+    <section class="admin-section">
+      <h2>Wiki</h2>
+      <p>
+        <span x-text="wikiPublished"></span> published /
+        <span x-text="wikiTotal"></span> total entries
+      </p>
+    </section>
+
+    <section class="admin-section">
+      <h2>Actions</h2>
+      <button
+        class="btn-primary"
+        type="button"
+        :disabled="rebuilding"
+        @click="rebuild()"
+        x-text="rebuilding ? 'Rebuilding…' : 'Trigger Site Rebuild'"
+      ></button>
+      <p x-show="rebuildStatus" x-text="rebuildStatus" class="admin-status-msg"></p>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://loreuniverse-api.fly.dev';
+
+function dashboard() {
+  return {
+    loading: true,
+    error: null,
+    health: null,
+    wikiPublished: 0,
+    wikiTotal: 0,
+    rebuilding: false,
+    rebuildStatus: '',
+
+    async init() {
+      const sessionRes = await fetch(API + '/api/auth/get-session', { credentials: 'include' });
+      const session = await sessionRes.json();
+      if (!session?.user || session.user.role !== 'admin') {
+        location.href = '/account/?redirect=' + encodeURIComponent(location.pathname);
+        return;
+      }
+
+      try {
+        const [healthRes, wikiRes, wikiAdminRes] = await Promise.all([
+          fetch(API + '/health'),
+          fetch(API + '/api/wiki/all'),
+          fetch(API + '/api/admin/wiki', { credentials: 'include' }),
+        ]);
+        if (!healthRes.ok) throw new Error('Health check failed');
+        this.health = await healthRes.json();
+
+        const published = await wikiRes.json();
+        this.wikiPublished = Array.isArray(published) ? published.length : 0;
+
+        if (wikiAdminRes.ok) {
+          const all = await wikiAdminRes.json();
+          this.wikiTotal = Array.isArray(all) ? all.length : 0;
+        }
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async rebuild() {
+      this.rebuilding = true;
+      this.rebuildStatus = '';
+      try {
+        const res = await fetch(API + '/api/admin/site-rebuild', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (res.status === 204) {
+          this.rebuildStatus = 'Rebuild triggered successfully.';
+        } else {
+          const err = await res.json().catch(() => ({}));
+          this.rebuildStatus = 'Error: ' + (err?.error?.message ?? res.status);
+        }
+      } catch (err) {
+        this.rebuildStatus = 'Network error: ' + err.message;
+      } finally {
+        this.rebuilding = false;
+      }
+    },
+  };
+}
+</script>
