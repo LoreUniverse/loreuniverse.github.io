@@ -413,9 +413,9 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | CI/CD (deploy-site.yml) | ✅ Builds + deploys on push + repository_dispatch |
 | Neon database | ✅ Live — 3 migrations applied |
 | Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY |
-| GitHub secret (lorekeeper repo) | ⚠️ **LORE_API_URL_BUILD not yet set** — wiki data not fetched at build time; homepage/wiki hub falls back to Eleventy static collections |
+| GitHub secret (lorekeeper repo) | ✅ `LORE_API_URL_BUILD` set — wiki data fetched at build time |
 | GitHub push auth | ✅ Resolved |
-| Account button cold start delay | ⚠️ Backend cold start (Fly.io scale-to-zero) causes the Account button to render slowly on first visit — `/api/auth/get-session` blocks until the machine wakes. Options: UptimeRobot warm-up ping every 5 min, or `localStorage` optimistic cache (not yet implemented). |
+| Account button cold start delay | ✅ `keep-warm.yml` GitHub Actions workflow pings `/health` every 5 minutes to prevent Fly.io scale-to-zero cold starts |
 
 ### Content
 | Area | State |
@@ -440,9 +440,7 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 - **Nav centering**: switched `.nav-inner` from `flex + justify-content: space-between` to `grid 1fr auto 1fr` so nav links are always geometrically centered.
 
 ### Immediate One-Time Actions Needed
-1. **Set `LORE_API_URL_BUILD` secret** in GitHub: repo `LoreUniverse/lorekeeper` → Settings → Secrets → Actions → New secret: `LORE_API_URL_BUILD` = `https://loreuniverse-api.fly.dev`
-2. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
-3. **Fix account button cold start delay** — set up UptimeRobot (free) to ping `https://loreuniverse-api.fly.dev/health` every 5 minutes, keeping Fly.io warm
+1. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
 
 ---
 
