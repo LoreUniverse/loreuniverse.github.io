@@ -337,15 +337,29 @@ Chapter pages use `reader-layout.njk` — a complete standalone HTML document wi
 Reader `localStorage` keys: `lr-font-size` (sm/md/lg), `lr-wiki-links` (show/hidden), `lr-reader-theme` (dark/light). Old key `lr-theme` is retired.
 
 ### V2 Design Tokens
-- Fonts: **Cinzel Decorative** (display/headings), **Rajdhani** (UI labels), **Inter** (body prose)
+- Fonts: **Cinzel Decorative** (`--font-display`, display headings), **Cinzel** (non-decorative, used on page titles such as books/chapters where Cinzel Decorative's tight O letterforms cause visual collision), **Rajdhani** (UI labels), **Inter** (body prose)
 - Palette: `--void: #07080e`, `--gold: #f59e0b`, `--blue: #38bdf8`, `--violet: #c084fc`
 - CSS variables: `--font-display`, `--font-ui`, `--font-body`, `--dur-fast/base/slow`, `--z-nav`, `--z-reader-bar`, `--z-settings`
+- Both `Cinzel` and `Cinzel Decorative` are in the Google Fonts `@import` in `tokens.css`.
 
 ### Navbar Behavior (V2)
 - Nav is hardcoded HTML in `base.njk` (not data-driven from `navigation.js`).
-- Glass pill style: `position: fixed; top: 1rem; left/right: 1rem; border-radius: 12px; backdrop-filter: blur`.
-- Desktop: brand sigil + wordmark left, nav links center, gold Account button right.
+- Glass pill style: `position: fixed; top: 1rem; left/right: 1rem; border-radius: 12px; backdrop-filter: blur`. No `overflow: hidden` (that would clip the account dropdown).
+- Desktop layout: `.nav-inner` uses **CSS grid `1fr auto 1fr`** — brand in col 1, nav links (`justify-self: center`) in col 2, account wrap (`justify-self: end`) in col 3. This guarantees the links are always geometrically centered regardless of brand/button widths.
 - Mobile (≤900px): hamburger toggles `.nav-mobile--open` dropdown. Nav links and Account button hidden.
+- **Account dropdown structure** (required by `auth.js`):
+  ```html
+  <div class="nav-account-wrap" id="nav-account">
+    <button class="nav-account" id="nav-account-btn" type="button">Account</button>
+    <ul class="nav-account-menu" id="nav-account-menu" role="menu" hidden></ul>
+  </div>
+  ```
+  `auth.js` populates `#nav-account-menu` on `DOMContentLoaded` based on session state. If signed in: shows first name on button + Profile / Sign out items. If signed out: shows Sign in / Register items. All three IDs must be present or `updateNav()` returns early with no effect.
+- **Session caching**: `auth.js` stores session in `sessionStorage` with a 30-second TTL (`lr-session` key). `signIn()` immediately caches the response so the nav updates on redirect without waiting for a second API round-trip.
+
+### Auth Page Guard
+- `/account/` (`frontend/src/account/index.njk`): if the user is already signed in, the module script redirects to `/account/profile/` via `location.replace()` before the form renders.
+- `/account/profile/` (`frontend/src/account/profile/index.njk`): if the user is NOT signed in, redirects to `/account/?redirect=/account/profile/`.
 
 ### Layout Chaining
 Front matter `---` must appear **before** any Nunjucks comments in template files — Eleventy's front matter parser doesn't detect it otherwise and the `base.njk` layout chain silently breaks.
@@ -388,19 +402,20 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | Foundation B | Postgres (Neon), Drizzle, Better Auth, Resend, email-verified auth flows | ✅ Merged |
 | Foundation C | Role/permission middleware, API tokens, audit log, ban/grant/application endpoints | ✅ Merged |
 | Foundation D | Books/chapters/wiki tables, Claude autolink, GitHub dispatch rebuild, Eleventy build-time wiki fetch | ✅ Merged |
-| Plan F (V2 Design) | Dark techno-arcane design system, V2 CSS, reader isolation, all page templates | ✅ Complete — 15 commits on main, **push pending** (see auth issue below) |
+| Plan F (V2 Design) | Dark techno-arcane design system, V2 CSS, reader isolation, all page templates, auth UI | ✅ Live on production |
 
 ### Infrastructure
 | Component | State |
 |---|---|
 | Backend (loreuniverse-api.fly.dev) | ✅ Live — all 9 modules healthy |
-| Static site (loreuniverse.github.io) | ✅ Live — currently showing pre-V2 build; V2 deploys once push issue resolved |
+| Static site (loreuniverse.github.io) | ✅ Live — V2 design deployed |
 | CI/CD (deploy-backend.yml) | ✅ Tests + deploy on push to main |
 | CI/CD (deploy-site.yml) | ✅ Builds + deploys on push + repository_dispatch |
 | Neon database | ✅ Live — 3 migrations applied |
 | Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY |
-| GitHub secret (lorekeeper repo) | ⚠️ **LORE_API_URL_BUILD not yet set** — wiki data not fetched at build time |
-| GitHub push auth | ⚠️ **403 on push** — credential for `timyih` may have expired. Fix: `cmdkey /delete:LegacyGeneric:target=git:https://github.com` then `git push`, or switch to SSH remote |
+| GitHub secret (lorekeeper repo) | ⚠️ **LORE_API_URL_BUILD not yet set** — wiki data not fetched at build time; homepage/wiki hub falls back to Eleventy static collections |
+| GitHub push auth | ✅ Resolved |
+| Account button cold start delay | ⚠️ Backend cold start (Fly.io scale-to-zero) causes the Account button to render slowly on first visit — `/api/auth/get-session` blocks until the machine wakes. Options: UptimeRobot warm-up ping every 5 min, or `localStorage` optimistic cache (not yet implemented). |
 
 ### Content
 | Area | State |
@@ -408,14 +423,26 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | Wiki entries in DB | 11 entries (characters: pinelopi, test-character; lore-traits: librarian, test-lore-trait; mechanics: lore-essence-mythos, lore-traits, loreworlds, test-mechanic; locations: test-location; factions: test-faction; lore: test-lore) |
 | Test entries | ⚠️ 7 test-* entries need removal or `isPublished: false` before public launch |
 | Unresolved [[links]] | ⚠️ Several wiki entries still contain `[[double bracket]]` links not yet converted (e.g. Pinelopi mentions `[[Mythos Corp]]`, Lore Traits mentions `[[Lore Power]]`, `[[Loreseekers]]`) |
-| Book 1 chapters | ⬜ No real prose added yet |
-| Visual design | ✅ V2 complete — dark techno-arcane design, full CSS system, reader isolation |
+| Book 1 chapters | ⬜ Chapters 1–3 exist as placeholder files. No real prose added yet. |
+| Visual design | ✅ V2 complete — dark techno-arcane design, full CSS system, reader isolation, auth UI |
 | Admin control panel | ⬜ No admin UI — Plan E |
 
+### Recent Frontend Bug Fixes (this session)
+- **Homepage wiki preview**: was broken due to Nunjucks `slice` filter being a chunking operation, not JS `Array.slice`. Fixed with a custom `limit` filter in `.eleventy.js`. Also added a `wikiRecentEntries` collection combining all 6 categories so the fallback works without the API.
+- **Wiki link toggle**: was using `display: none` (removed word from layout). Fixed to `color: inherit; text-decoration: none; pointer-events: none` so the word stays but loses link styling.
+- **Page title font**: Cinzel Decorative's O letterforms collide visually in words like "Books" and "Book 1". Swapped `.books-page-title` and `.chapters-page-title` to Cinzel (non-decorative) at `letter-spacing: 0.04em`.
+- **Wiki entry page padding**: `.wiki-entry` had no base CSS rule, causing navbar overlap. Added `padding: 8rem 2rem 6rem; max-width: 960px; margin: 0 auto`.
+- **Nav account dropdown**: restructured nav HTML to match `auth.js` IDs (`#nav-account`, `#nav-account-btn`, `#nav-account-menu`); dropdown now floats properly (removed `overflow: hidden` from `.nav`); nav links centered via CSS grid.
+- **Auth sign-in flow**: `signIn()` now caches session from response immediately, so the nav button updates to the user's first name on redirect without waiting for a second API call.
+- **Auth guard on `/account/`**: signed-in users are redirected to `/account/profile/` via `location.replace()`.
+- **Latest Chapter label**: "Now Reading" renamed to "Latest Chapter" site-wide (with TODO for reading-progress feature).
+- **Library "Read the Story" card**: was linking to Book 1 chapters directly; corrected to `/library/books/`.
+- **Nav centering**: switched `.nav-inner` from `flex + justify-content: space-between` to `grid 1fr auto 1fr` so nav links are always geometrically centered.
+
 ### Immediate One-Time Actions Needed
-1. **Fix GitHub push auth** — credential expired for `timyih`. Run in PowerShell: `cmdkey /delete:LegacyGeneric:target=git:https://github.com` then `git push`. Or switch to SSH: `git remote set-url origin git@github.com:LoreUniverse/lorekeeper.git`
-2. **Set `LORE_API_URL_BUILD` secret** in GitHub: repo `LoreUniverse/lorekeeper` → Settings → Secrets → Actions → New secret: `LORE_API_URL_BUILD` = `https://loreuniverse-api.fly.dev`
-3. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
+1. **Set `LORE_API_URL_BUILD` secret** in GitHub: repo `LoreUniverse/lorekeeper` → Settings → Secrets → Actions → New secret: `LORE_API_URL_BUILD` = `https://loreuniverse-api.fly.dev`
+2. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
+3. **Fix account button cold start delay** — set up UptimeRobot (free) to ping `https://loreuniverse-api.fly.dev/health` every 5 minutes, keeping Fly.io warm
 
 ---
 
