@@ -1,0 +1,128 @@
+---
+title: Wiki
+layout: base.njk
+permalink: /wiki/
+---
+{#
+  wiki/index.njk — V2 Wiki Hub
+
+  Shows six category cards with live entry counts from wiki.byCategory.
+#}
+
+<div class="wiki-hub">
+  <div class="container">
+
+    <div class="wiki-hub-header">
+      <p class="wiki-hub-eyebrow">The Compendium</p>
+      <h1 class="wiki-hub-title">Lore Universe Wiki</h1>
+      <p class="wiki-hub-lead">
+        Characters, factions, locations, mechanics, lore, and the systems that govern existence.
+        Every facet of the universe, documented.
+      </p>
+    </div>
+
+    <div class="wiki-hub-grid explore-grid">
+
+      {# Characters #}
+      <a class="explore-card explore-card--blue" href="/wiki/characters/"
+        aria-label="Browse Characters">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="14" r="6" stroke="rgba(56,189,248,0.6)" stroke-width="1.2" fill="rgba(56,189,248,0.08)"/>
+          <path d="M8 34c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="rgba(56,189,248,0.5)" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">Characters</div>
+        <h3 class="card-title">People &amp; Beings</h3>
+        <p class="card-desc">Backgrounds, abilities, allegiances, and histories of those who walk the universe.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['characters'] %}{{ wiki.byCategory['characters'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      {# Lore Traits #}
+      <a class="explore-card explore-card--violet" href="/wiki/lore-traits/"
+        aria-label="Browse Lore Traits">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="9" stroke="rgba(192,132,252,0.5)" stroke-width="1.2" fill="rgba(192,132,252,0.07)"/>
+          <circle cx="20" cy="20" r="3" fill="rgba(192,132,252,0.8)"/>
+          <path d="M20 7v4M20 29v4M7 20h4M29 20h4" stroke="rgba(192,132,252,0.35)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">Lore Traits</div>
+        <h3 class="card-title">The Magic System</h3>
+        <p class="card-desc">Traits characters possess, their subtypes, and the abilities they unlock across the cosmos.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['lore-traits'] %}{{ wiki.byCategory['lore-traits'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      {# Mechanics #}
+      <a class="explore-card explore-card--gold" href="/wiki/mechanics/"
+        aria-label="Browse Mechanics">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="7" stroke="rgba(245,158,11,0.55)" stroke-width="1.2" fill="rgba(245,158,11,0.07)"/>
+          <path d="M20 5v5M20 30v5M5 20h5M30 20h5M9.4 9.4l3.5 3.5M27.1 27.1l3.5 3.5M9.4 30.6l3.5-3.5M27.1 12.9l3.5-3.5"
+            stroke="rgba(245,158,11,0.35)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">Mechanics</div>
+        <h3 class="card-title">Rules &amp; Systems</h3>
+        <p class="card-desc">The fundamental rules and systems that govern all of the Lore Universe.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['mechanics'] %}{{ wiki.byCategory['mechanics'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      {# Locations #}
+      <a class="explore-card explore-card--blue" href="/wiki/locations/"
+        aria-label="Browse Locations">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 4C14.477 4 10 8.477 10 14c0 8 10 22 10 22s10-14 10-22c0-5.523-4.477-10-10-10z"
+            stroke="rgba(56,189,248,0.55)" stroke-width="1.2" fill="rgba(56,189,248,0.07)"/>
+          <circle cx="20" cy="14" r="3" fill="rgba(56,189,248,0.75)"/>
+        </svg>
+        <div class="card-tag">Locations</div>
+        <h3 class="card-title">Places &amp; Worlds</h3>
+        <p class="card-desc">Cities, regions, planets, dimensions — every significant place in the cosmos.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['locations'] %}{{ wiki.byCategory['locations'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      {# Factions #}
+      <a class="explore-card explore-card--gold" href="/wiki/factions/"
+        aria-label="Browse Factions">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 6l2.5 7.5H30l-6 4.4 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.4h7.5z"
+            stroke="rgba(245,158,11,0.55)" stroke-width="1.2" fill="rgba(245,158,11,0.07)" stroke-linejoin="round"/>
+        </svg>
+        <div class="card-tag">Factions</div>
+        <h3 class="card-title">Organizations &amp; Orders</h3>
+        <p class="card-desc">Governments, guilds, cults, and the groups whose ambitions shape the universe.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['factions'] %}{{ wiki.byCategory['factions'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      {# Lore #}
+      <a class="explore-card explore-card--violet" href="/wiki/lore/"
+        aria-label="Browse Lore">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M8 8h24v24H8z" stroke="rgba(192,132,252,0.25)" stroke-width="1" fill="none" rx="2"/>
+          <path d="M13 15h14M13 20h14M13 25h8" stroke="rgba(192,132,252,0.65)" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">Lore</div>
+        <h3 class="card-title">History &amp; Myth</h3>
+        <p class="card-desc">The histories, myths, and foundational events that shaped everything that came after.</p>
+        <div class="card-arrow">
+          {% if wiki.byCategory['lore'] %}{{ wiki.byCategory['lore'].length }} entries{% else %}Browse{% endif %}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+</div>
