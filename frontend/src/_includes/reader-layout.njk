@@ -1,0 +1,28 @@
+{#
+  reader-layout.njk — V2
+  Standalone layout for chapter reader pages.
+  Extends nothing — no base.njk header/footer.
+  Loads reader.css (which imports tokens.css) and reader.js.
+  Anti-FOUC: applies saved lr-reader-theme before first paint.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} | Lore Universe</title>
+  <link rel="stylesheet" href="/assets/css/reader.css">
+  <script>
+    (function () {
+      var t = localStorage.getItem('lr-reader-theme') || 'dark';
+      document.documentElement.dataset.readerTheme = t;
+    })();
+  </script>
+</head>
+<body>
+<div class="reader-wrap" id="reader-wrap">
+  {{ content | safe }}
+</div>
+<script src="/assets/js/reader.js" defer></script>
+</body>
+</html>
