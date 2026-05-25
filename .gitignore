@@ -35,5 +35,5 @@ coverage/
 scripts/staging/
 scripts/converted/
 
-# Git worktrees (managed by Claude Code)
-.claude/worktrees/
+# Claude Code session/agent config
+.claude/

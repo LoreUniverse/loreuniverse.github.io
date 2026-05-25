@@ -113,7 +113,7 @@ Categories: Characters, Lore Traits, Mechanics, Locations, Factions, Lore.
 
 ### Category listing pages
 
-Each `wiki/[category]/index.md` becomes `index.njk`. Layout: section header (category name + total count), then 2-column entry card grid. Each card: type badge, entry name, one-line description excerpt, link to entry.
+A single shared layout `_includes/wiki-category.njk` handles all six categories. Each `wiki/[category]/index.md` stays as markdown and specifies `layout: wiki-category.njk` in its front matter — no per-category template needed. The layout renders: section header (category name + total count), then 2-column entry card grid. Each card: type badge, entry name, one-line description excerpt, link to entry.
 
 ### Individual wiki entries (`wiki-entry.njk`)
 
@@ -172,14 +172,9 @@ S/M/L buttons set this variable on `.reader-prose` via JS. The top bar and setti
 - `frontend/src/assets/css/tokens.css`
 - `frontend/src/assets/css/site.css`
 - `frontend/src/_includes/reader-layout.njk`
+- `frontend/src/_includes/wiki-category.njk`
 - `frontend/src/index.njk`
 - `frontend/src/wiki/index.njk`
-- `frontend/src/wiki/characters/index.njk`
-- `frontend/src/wiki/factions/index.njk`
-- `frontend/src/wiki/locations/index.njk`
-- `frontend/src/wiki/lore-traits/index.njk`
-- `frontend/src/wiki/lore/index.njk`
-- `frontend/src/wiki/mechanics/index.njk`
 
 ### Modified files
 - `frontend/src/assets/css/reader.css` — full rewrite (reader-only, scoped)
