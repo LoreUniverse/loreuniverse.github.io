@@ -1,0 +1,57 @@
+{#
+  wiki-category.njk — V2
+  Shared layout for all six wiki category listing pages.
+  Extends base.njk.
+
+  Required front matter on the category index.md:
+    title:        "Characters"   (display name)
+    category_key: "characters"   (matches wiki.byCategory key and folder name)
+    layout:       "wiki-category.njk"
+    permalink:    "/wiki/characters/"
+
+  Entry data comes from wiki.byCategory[category_key] (API-backed build data).
+  If the API is unavailable at build time, falls back to an empty state.
+#}
+---
+layout: base.njk
+---
+
+{% set entries = wiki.byCategory[category_key] %}
+{% set entryCount = entries.length if entries else 0 %}
+
+<div class="wiki-category">
+  <div class="container">
+
+    <div class="wiki-category-header">
+      <a class="wiki-category-back" href="/wiki/">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Wiki
+      </a>
+      <h1 class="wiki-category-title">{{ title }}</h1>
+      <p class="wiki-category-count">
+        {% if entryCount %}{{ entryCount }} {% if entryCount == 1 %}entry{% else %}entries{% endif %}{% else %}No entries yet{% endif %}
+      </p>
+    </div>
+
+    {% if entries and entries.length %}
+    <div class="wiki-entry-grid">
+      {% for entry in entries %}
+      <a class="wiki-entry-card" href="{{ site.modules.wiki.root }}/{{ category_key }}/{{ entry.slug }}/">
+        <span class="wiki-entry-card-badge">{{ title | truncate(12, true, '') }}</span>
+        <p class="wiki-entry-card-name">{{ entry.name }}</p>
+        {% if entry.description %}
+        <p class="wiki-entry-card-desc">{{ entry.description | truncate(120) }}</p>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="wiki-empty">
+      <p class="wiki-empty-text">No entries yet — sync wiki data and rebuild.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</div>

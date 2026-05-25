@@ -1,19 +1,6 @@
 ---
 title: Characters
-layout: base.njk
+layout: wiki-category.njk
 permalink: /wiki/characters/
+category_key: characters
 ---
-
-# Characters
-
-People and beings of the Lore Universe.
-
-{% if collections.characters and collections.characters.length %}
-<ul>
-  {% for entry in collections.characters %}
-  <li><a href="{{ entry.url }}">{{ entry.data.name }}</a></li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No character entries yet.</p>
-{% endif %}

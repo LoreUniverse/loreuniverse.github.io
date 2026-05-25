@@ -1,19 +1,6 @@
 ---
 title: Locations
-layout: base.njk
+layout: wiki-category.njk
 permalink: /wiki/locations/
+category_key: locations
 ---
-
-# Locations
-
-Places of significance — cities, regions, planets, and dimensions.
-
-{% if collections.locations and collections.locations.length %}
-<ul>
-  {% for entry in collections.locations %}
-  <li><a href="{{ entry.url }}">{{ entry.data.name }}</a></li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No location entries yet.</p>
-{% endif %}
