@@ -1,0 +1,227 @@
+---
+title: Home
+layout: base.njk
+permalink: /
+---
+{#
+  index.njk — V2 Homepage
+
+  Data sources:
+  - Now Reading: most recent chapter by publication_date from collections.chapters
+  - World Entries: first 5 entries from wiki.entries (API data)
+#}
+
+{# Find the most recently published chapter #}
+{% set latestChapter = null %}
+{% for ch in collections.chapters | sort(false, false, "data.publication_date") | reverse %}
+  {% if loop.first %}{% set latestChapter = ch %}{% endif %}
+{% endfor %}
+
+{# Hero #}
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="starfield" aria-hidden="true"></div>
+
+  <p class="hero-eyebrow" aria-hidden="true">Serialized Fiction &amp; World Compendium</p>
+
+  <h1 class="hero-title" id="hero-heading">
+    Lore
+    <span class="hero-title-gold">Universe</span>
+  </h1>
+
+  <p class="hero-subtitle">An Infinite Cosmic Expanse</p>
+
+  <div class="arcane-divider" aria-hidden="true">
+    <span class="arcane-glyph">⬡ ◆ ⬡</span>
+  </div>
+
+  <p class="hero-lead">
+    Across a cosmos without limit, every path to power awaits its seeker.
+    The arcane and the mechanical are not opposites —
+    they are two hands of the same reaching grasp.
+  </p>
+
+  <div class="hero-ctas">
+    <a class="btn-primary" href="/library/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      Begin Reading
+    </a>
+    <a class="btn-secondary" href="/wiki/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      Browse the Compendium
+    </a>
+  </div>
+
+  <div class="scroll-cue" aria-hidden="true">
+    <div class="scroll-line"></div>
+    <span>Explore</span>
+  </div>
+</section>
+
+{# Paths of Power #}
+<section class="explore" aria-labelledby="explore-heading">
+  <div class="container">
+    <div class="s-divider">
+      <div class="s-divider-label">
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+        Paths of Power
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+      </div>
+    </div>
+    <div class="s-header">
+      <p class="s-label">Choose your path</p>
+      <h2 class="s-title" id="explore-heading">Enter the Universe</h2>
+    </div>
+
+    <div class="explore-grid">
+
+      <a class="explore-card explore-card--blue" href="/library/" aria-label="Library — The Novels">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="5" y="5" width="30" height="30" rx="3" stroke="rgba(56,189,248,0.25)" stroke-width="1"/>
+          <path d="M11 13h18M11 19h18M11 25h11" stroke="rgba(56,189,248,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="31" cy="27" r="5.5" fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.5)" stroke-width="1"/>
+          <path d="M29.2 27l1.4 1.4 2.8-2.8" stroke="rgba(56,189,248,0.9)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="card-tag">Library · The Novels</div>
+        <h3 class="card-title">The Serialized Story</h3>
+        <p class="card-desc">Follow the serialized fiction from the beginning. New chapters, living worlds, and the ever-expanding scope of a universe in motion.</p>
+        <div class="card-arrow">
+          Enter the Library
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a class="explore-card explore-card--gold" href="/wiki/" aria-label="Compendium — The Wiki">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 3 L35.5 12 L35.5 30 L20 39 L4.5 30 L4.5 12 Z" stroke="rgba(245,158,11,0.25)" stroke-width="1" fill="none"/>
+          <circle cx="20" cy="21" r="6.5" stroke="rgba(245,158,11,0.55)" stroke-width="1" fill="rgba(245,158,11,0.06)"/>
+          <path d="M20 14.5v-3M20 30.5v-3M13.5 21h-3M29.5 21h-3" stroke="rgba(245,158,11,0.45)" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="20" cy="21" r="2.25" fill="rgba(245,158,11,0.85)"/>
+        </svg>
+        <div class="card-tag">Compendium · The Wiki</div>
+        <h3 class="card-title">The World Compendium</h3>
+        <p class="card-desc">Characters, factions, locations, mechanics, and the esoteric laws governing existence. Every facet of the universe, documented.</p>
+        <div class="card-arrow">
+          Open the Compendium
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a class="explore-card explore-card--violet" href="/about/" aria-label="About — The Project">
+        <svg class="card-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="15" stroke="rgba(192,132,252,0.15)" stroke-width="1"/>
+          <circle cx="20" cy="20" r="9"  stroke="rgba(192,132,252,0.3)"  stroke-width="1"/>
+          <circle cx="20" cy="20" r="3.5" fill="rgba(192,132,252,0.7)"/>
+          <path d="M20 5v4M20 31v4M5 20h4M31 20h4" stroke="rgba(192,132,252,0.28)" stroke-width="1" stroke-linecap="round"/>
+          <path d="M9.4 9.4l2.8 2.8M27.8 27.8l2.8 2.8M9.4 30.6l2.8-2.8M27.8 12.2l2.8-2.8"
+            stroke="rgba(192,132,252,0.2)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <div class="card-tag">About · The Project</div>
+        <h3 class="card-title">The Lore Universe Project</h3>
+        <p class="card-desc">Where arcane and technology fuse into something neither tradition could achieve alone. The project, its direction, its vision.</p>
+        <div class="card-arrow">
+          Learn More
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+{# Now Reading #}
+<section class="chapter-wrap" aria-labelledby="chapter-heading">
+  <div class="container">
+    <div class="s-divider">
+      <div class="s-divider-label">
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+        Now Reading
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+      </div>
+    </div>
+
+    {% if latestChapter %}
+    <div class="chapter-card">
+      <div>
+        <div class="chapter-meta">
+          <span class="chapter-chip">Chapter {{ latestChapter.data.chapter_number }}</span>
+          {% if latestChapter.data.arc %}<span class="chapter-book">{{ latestChapter.data.arc }}</span>{% endif %}
+        </div>
+        <h2 class="chapter-title" id="chapter-heading">{{ latestChapter.data.title }}</h2>
+        {% if latestChapter.data.summary %}
+        <p class="chapter-excerpt">{{ latestChapter.data.summary }}</p>
+        {% endif %}
+      </div>
+      <div style="flex-shrink:0">
+        <a class="btn-secondary" href="{{ latestChapter.url }}">Start Reading</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="chapter-card">
+      <div>
+        <div class="chapter-meta">
+          <span class="chapter-chip">Coming Soon</span>
+        </div>
+        <h2 class="chapter-title" id="chapter-heading">The story is being written.</h2>
+        <p class="chapter-excerpt">The first chapter of the Lorekeeper series is on its way.</p>
+      </div>
+      <div style="flex-shrink:0">
+        <a class="btn-secondary" href="/library/">Visit Library</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{# World Entries #}
+<section class="wiki-wrap" aria-labelledby="wiki-heading">
+  <div class="container">
+    <div class="s-divider">
+      <div class="s-divider-label">
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+        From the Compendium
+        <span class="s-divider-rune" aria-hidden="true">◆</span>
+      </div>
+    </div>
+    <div class="wiki-header">
+      <h2 class="wiki-heading" id="wiki-heading">World Entries</h2>
+      <a class="wiki-view-all" href="/wiki/">View All</a>
+    </div>
+
+    {% if wiki.entries and wiki.entries.length %}
+    <div class="wiki-grid">
+      {% for entry in wiki.entries | slice(0, 5) %}
+      <a class="wiki-card" href="{{ site.modules.wiki.root }}/{{ entry.category }}/{{ entry.slug }}/">
+        <div class="wiki-cat">{{ entry.category | replace("-", " ") | title }}</div>
+        <h3 class="wiki-entry-title">{{ entry.name }}</h3>
+        {% if entry.description %}
+        <p class="wiki-entry-desc">{{ entry.description | truncate(100) }}</p>
+        {% endif %}
+      </a>
+      {% endfor %}
+      <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="View all wiki entries">
+        <div class="wiki-cat" style="color:var(--text-muted)">Compendium</div>
+        <p class="wiki-entry-title" style="color:var(--text-secondary)">Explore All Entries</p>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(192,132,252,0.5)" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+    {% else %}
+    <div class="wiki-grid">
+      <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="Browse the wiki"
+        style="grid-column: 1 / -1; min-height: 180px;">
+        <div class="wiki-cat" style="color:var(--text-muted)">Compendium</div>
+        <p class="wiki-entry-title" style="color:var(--text-secondary)">World entries coming soon</p>
+        <p class="wiki-entry-desc" style="color:var(--text-muted); font-size:0.78rem; margin-top:0.25rem;">Browse the wiki to see what's available.</p>
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
