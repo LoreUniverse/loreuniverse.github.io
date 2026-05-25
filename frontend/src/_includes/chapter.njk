@@ -1,61 +1,135 @@
 ---
-layout: base.njk
+layout: reader-layout.njk
 ---
 {#
-  chapter.njk
-  Layout for novel chapter pages. Extends base.njk.
+  chapter.njk — V2
+  Layout for chapter pages. Extends reader-layout.njk.
 
-  Expected front matter fields (from PROJECT_BRIEFING.md schema):
+  Expected front matter:
     title, chapter_number, arc, publication_date, summary, wiki_links
 
-  Notes:
-    - publication_date is formatted using the `readableDate` filter
-    - wiki_links boolean controls whether the wikiLinks transform renders
-      real <a> tags; client-side CSS + reader.js handle show/hide at runtime
-    - Reader controls (font size, wiki links, theme) are fixed-position and
-      appear on all chapter pages; all state is persisted in localStorage
+  Top bar buttons:
+    Back → book chapter listing (/library/books/book1/chapters/)
+    Prev → previous chapter (hidden if none)
+    Next → next chapter (hidden if none)
+    Settings → opens settings popover
+
+  Font size: S/M/L buttons set --reader-font-size on .reader-prose via JS.
+  Wiki links: Show/Hide toggle controls .wiki-link visibility in .reader-prose.
+  Theme: Dark/Light toggle sets data-reader-theme on .reader-wrap.
+  All state persists to localStorage.
 #}
 
-{# Reader controls — floating pill, bottom-right. JS in reader.js drives state. #}
-<div class="reader-controls" role="toolbar" aria-label="Reading preferences">
-  <button class="reader-controls__btn reader-controls__btn--sm" data-font-size-btn="sm" aria-pressed="false" aria-label="Small text size">A</button>
-  <button class="reader-controls__btn reader-controls__btn--md" data-font-size-btn="md" aria-pressed="false" aria-label="Medium text size">A</button>
-  <button class="reader-controls__btn reader-controls__btn--lg" data-font-size-btn="lg" aria-pressed="false" aria-label="Large text size">A</button>
-  {% if wiki_links %}
-  <div class="reader-controls__divider" aria-hidden="true"></div>
-  <button class="reader-controls__btn reader-controls__btn--wiki" id="wiki-links-toggle" aria-pressed="true" aria-label="Toggle wiki links">Links</button>
-  {% endif %}
-  <div class="reader-controls__divider" aria-hidden="true"></div>
-  <button class="reader-controls__theme-btn" id="theme-toggle" aria-label="Toggle theme">Dark</button>
+{% set chapNav = collections.chapters | getPrevNext(page.url) %}
+
+<div class="reader-bar" role="toolbar" aria-label="Reader controls">
+
+  <div class="reader-bar-left">
+    <a class="reader-btn" href="/library/books/book1/chapters/" aria-label="Back to chapter list">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="reader-btn-label">Library</span>
+    </a>
+
+    {% if chapNav.prev %}
+    <a class="reader-btn" href="{{ chapNav.prev.url }}" aria-label="Previous chapter: {{ chapNav.prev.data.title }}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      <span class="reader-btn-label">Prev</span>
+    </a>
+    {% endif %}
+
+    {% if chapNav.next %}
+    <a class="reader-btn" href="{{ chapNav.next.url }}" aria-label="Next chapter: {{ chapNav.next.data.title }}">
+      <span class="reader-btn-label">Next</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="reader-bar-right">
+    <div class="reader-settings-anchor">
+      <button class="reader-btn" id="reader-settings-btn"
+        aria-label="Reading settings"
+        aria-expanded="false"
+        aria-controls="reader-settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="reader-btn-label">Settings</span>
+      </button>
+
+      <div class="reader-settings" id="reader-settings"
+        role="dialog" aria-modal="true" aria-label="Reading settings">
+
+        <div class="reader-settings-row">
+          <span class="reader-settings-label">Font size</span>
+          <div class="reader-toggle-group" role="group" aria-label="Font size">
+            <button class="reader-toggle-btn" data-font-size="sm" aria-pressed="false" aria-label="Small">S</button>
+            <button class="reader-toggle-btn" data-font-size="md" aria-pressed="false" aria-label="Medium">M</button>
+            <button class="reader-toggle-btn" data-font-size="lg" aria-pressed="false" aria-label="Large">L</button>
+          </div>
+        </div>
+
+        <div class="reader-settings-row">
+          <span class="reader-settings-label">Wiki links</span>
+          <div class="reader-toggle-group" role="group" aria-label="Wiki links visibility">
+            <button class="reader-toggle-btn" data-wiki-links-btn="show" aria-pressed="false">Show</button>
+            <button class="reader-toggle-btn" data-wiki-links-btn="hide" aria-pressed="false">Hide</button>
+          </div>
+        </div>
+
+        <div class="reader-settings-row">
+          <span class="reader-settings-label">Theme</span>
+          <div class="reader-toggle-group" role="group" aria-label="Reader theme">
+            <button class="reader-toggle-btn" data-theme-btn="dark"  aria-pressed="false">Dark</button>
+            <button class="reader-toggle-btn" data-theme-btn="light" aria-pressed="false">Light</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<article class="chapter" data-wiki-links="{{ wiki_links }}">
+<div class="reader-prose-wrap">
+  <article class="reader-prose" id="reader-prose">
 
-  <header class="chapter__header">
+    <header class="reader-chapter-header">
+      {% if arc %}<p class="reader-arc">{{ arc }}</p>{% endif %}
+      <p class="reader-chapter-num">Chapter {{ chapter_number }}</p>
+      <h1 class="reader-chapter-title">{{ title }}</h1>
+      {% if publication_date %}<p class="reader-chapter-date">{{ publication_date | readableDate }}</p>{% endif %}
+      {% if summary %}<p class="reader-chapter-summary">{{ summary }}</p>{% endif %}
+    </header>
 
-    {% if arc %}
-    <p class="chapter__arc">{{ arc }}</p>
+    <section data-wiki-links="{{ wiki_links }}">
+      {{ content | safe }}
+    </section>
+
+  </article>
+
+  <nav class="reader-pagination" aria-label="Chapter navigation">
+    {% if chapNav.prev %}
+    <a class="btn-secondary" href="{{ chapNav.prev.url }}"
+      aria-label="Previous: {{ chapNav.prev.data.title }}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Previous
+    </a>
     {% endif %}
-
-    <p class="chapter__number">Chapter {{ chapter_number }}</p>
-    <h1 class="chapter__title">{{ title }}</h1>
-
-    {% if publication_date %}
-    <p class="chapter__date">{{ publication_date | readableDate }}</p>
+    {% if chapNav.next %}
+    <a class="btn-secondary" href="{{ chapNav.next.url }}"
+      aria-label="Next: {{ chapNav.next.data.title }}">
+      Next
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
     {% endif %}
-
-    {% if summary %}
-    <p class="chapter__summary">{{ summary }}</p>
-    {% endif %}
-
-  </header>
-
-  <section class="chapter__body">
-    {{ content | safe }}
-  </section>
-
-  <nav class="chapter__pagination">
-    {# Future: previous / next chapter navigation links #}
   </nav>
-
-</article>
+</div>
