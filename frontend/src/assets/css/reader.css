@@ -1,748 +1,235 @@
 /* =================================================================
-   LORE UNIVERSE — READER STYLESHEET
-   Drives all visual design: theming, typography, layout, controls.
-   Custom properties on <html> handle dark mode and font size scale.
+   LORE UNIVERSE — READER CSS V2
+   Loaded only by reader-layout.njk (chapter pages).
+   Imports tokens for the full token set.
+   Reader theme toggled via data-reader-theme on .reader-wrap.
+   Font size scoped to .reader-prose via --reader-font-size.
    ================================================================= */
 
+@import 'tokens.css';
+
 /* -----------------------------------------------------------------
-   Custom properties — Light theme (default)
+   Reset (minimal — reader pages only)
    ----------------------------------------------------------------- */
-:root {
-  /* Palette */
-  --clr-bg:              #f7f3ec;
-  --clr-surface:         #ffffff;
-  --clr-text:            #28200e;
-  --clr-text-muted:      #6b5d48;
-  --clr-border:          #ddd5c5;
-  --clr-accent:          #6b4fa8;
-  --clr-accent-hover:    #4e3888;
-
-  /* Nav */
-  --clr-nav-bg:          #ffffff;
-  --clr-nav-border:      #e2d9cc;
-
-  /* Controls pill */
-  --clr-ctrl-bg:         #ffffff;
-  --clr-ctrl-border:     #ddd5c5;
-  --clr-ctrl-text:       #28200e;
-  --clr-ctrl-active-bg:  #ede8f7;
-  --clr-ctrl-active-fg:  #4e3888;
-
-  /* Typography */
-  --font-body:           Georgia, 'Times New Roman', serif;
-  --font-ui:             system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-size-base:      18px;
-  --line-height-body:    1.85;
-
-  /* Layout */
-  --reading-max-width:   680px;
-  --page-padding:        clamp(1rem, 5vw, 2.5rem);
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* -----------------------------------------------------------------
-   Custom properties — Dark theme
+   Reader wrap — dark default
    ----------------------------------------------------------------- */
-[data-theme="dark"] {
-  --clr-bg:              #161210;
-  --clr-surface:         #1e1a15;
-  --clr-text:            #e5dcc5;
-  --clr-text-muted:      #9a8a70;
-  --clr-border:          #2e2820;
-  --clr-accent:          #c0a0e0;
-  --clr-accent-hover:    #dbbcff;
-
-  --clr-nav-bg:          #1e1a15;
-  --clr-nav-border:      #2e2820;
-
-  --clr-ctrl-bg:         #1e1a15;
-  --clr-ctrl-border:     #2e2820;
-  --clr-ctrl-text:       #e5dcc5;
-  --clr-ctrl-active-bg:  #2e2848;
-  --clr-ctrl-active-fg:  #c0a0e0;
+.reader-wrap {
+  min-height: 100vh;
+  background-color: var(--void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-/* -----------------------------------------------------------------
-   Font size scale — applied via data attribute on <html>
-   ----------------------------------------------------------------- */
-[data-font-size="sm"] { --font-size-base: 15px; }
-[data-font-size="md"] { --font-size-base: 18px; }
-[data-font-size="lg"] { --font-size-base: 22px; }
-
-/* -----------------------------------------------------------------
-   Reset / base
-   ----------------------------------------------------------------- */
-*, *::before, *::after { box-sizing: border-box; }
-
-html {
-  font-size: var(--font-size-base);
-  transition: font-size 0.15s ease;
-}
-
 body {
   margin: 0;
-  background-color: var(--clr-bg);
-  color: var(--clr-text);
-  font-family: var(--font-body);
-  font-size: 1rem;
-  line-height: var(--line-height-body);
-  transition: background-color 0.2s ease, color 0.2s ease;
-  -webkit-font-smoothing: antialiased;
+  background-color: var(--void);
 }
-
-a {
-  color: var(--clr-accent);
-  text-decoration: none;
-}
-
-a:hover {
-  color: var(--clr-accent-hover);
-  text-decoration: underline;
-}
-
-img { max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
 
 /* -----------------------------------------------------------------
-   Site header / navigation
+   Light theme override — scoped to .reader-wrap
    ----------------------------------------------------------------- */
-body > header {
-  background-color: var(--clr-nav-bg);
-  border-bottom: 1px solid var(--clr-nav-border);
-  padding: 0.6rem var(--page-padding);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+.reader-wrap[data-reader-theme="light"],
+:root[data-reader-theme="light"] .reader-wrap {
+  --void:           #f7f3ec;
+  --surface-1:      #ffffff;
+  --surface-2:      #f0ebe0;
+  --border:         rgba(0,0,0,0.08);
+  --border-med:     rgba(0,0,0,0.12);
+  --text-bright:    #1a1408;
+  --text-primary:   #28200e;
+  --text-secondary: #6b5d48;
+  --text-muted:     #9a8874;
+  --text-faint:     #c4b89e;
+  background-color: var(--void);
+  color: var(--text-primary);
 }
-
-.nav__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-}
-
-.nav__item { position: relative; }
-
-.nav__link {
-  color: var(--clr-text);
-  font-weight: 500;
-  transition: color 0.15s;
-}
-
-.nav__link:hover {
-  color: var(--clr-accent);
-  text-decoration: none;
-}
-
-.nav__toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 0.2rem;
-  font: inherit;
-  font-size: 0.75rem;
-  color: var(--clr-text-muted);
-  line-height: 1;
-  vertical-align: middle;
-  transition: color 0.15s;
-}
-
-.nav__toggle:hover { color: var(--clr-accent); }
-
-.nav__submenu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  list-style: none;
-  padding: 0.4rem 0;
-  margin: 0;
-  min-width: 10rem;
-  background: var(--clr-surface);
-  border: 1px solid var(--clr-border);
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  z-index: 200;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-}
-
-.nav__submenu[hidden] { display: none; }
-
-.nav__sublink {
-  display: block;
-  padding: 0.4rem 1rem;
-  color: var(--clr-text);
-  transition: background-color 0.1s, color 0.1s;
-}
-
-.nav__sublink:hover {
-  background-color: var(--clr-border);
-  color: var(--clr-accent);
-  text-decoration: none;
+:root[data-reader-theme="light"] body,
+.reader-wrap[data-reader-theme="light"] {
+  background-color: #f7f3ec;
 }
 
 /* -----------------------------------------------------------------
-   Main content area
+   Reader top bar
    ----------------------------------------------------------------- */
-body > main {
-  padding: 2rem var(--page-padding) 5rem;
-}
-
-/* -----------------------------------------------------------------
-   Footer
-   ----------------------------------------------------------------- */
-body > footer {
-  border-top: 1px solid var(--clr-border);
-  padding: 1.25rem var(--page-padding);
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  color: var(--clr-text-muted);
-  text-align: center;
-  transition: border-color 0.2s ease;
-}
-
-/* -----------------------------------------------------------------
-   Chapter layout
-   ----------------------------------------------------------------- */
-.chapter {
-  max-width: var(--reading-max-width);
-  margin: 0 auto;
-}
-
-.chapter__header {
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--clr-border);
-}
-
-.chapter__arc {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--clr-accent);
-  margin: 0 0 0.5rem;
-}
-
-.chapter__number {
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  color: var(--clr-text-muted);
-  margin: 0 0 0.25rem;
-}
-
-.chapter__title {
-  font-family: var(--font-body);
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  font-weight: bold;
-  line-height: 1.2;
-  margin: 0 0 0.75rem;
-  color: var(--clr-text);
-}
-
-.chapter__date {
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  color: var(--clr-text-muted);
-  margin: 0 0 1rem;
-}
-
-.chapter__summary {
-  font-style: italic;
-  color: var(--clr-text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin: 0;
-  padding: 0.75rem 1rem;
-  border-left: 3px solid var(--clr-border);
-}
-
-/* -----------------------------------------------------------------
-   Chapter prose body
-   ----------------------------------------------------------------- */
-.chapter__body p {
-  margin: 0 0 1.4em;
-  text-indent: 1.5em;
-}
-
-.chapter__body p:first-child,
-.chapter__body hr + p {
-  text-indent: 0;
-}
-
-.chapter__body hr {
-  border: none;
-  border-top: 1px solid var(--clr-border);
-  margin: 2em auto;
-  width: 40%;
-}
-
-/* -----------------------------------------------------------------
-   Wiki links — chapter prose
-   ----------------------------------------------------------------- */
-.wiki-link {
-  color: var(--clr-accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  transition: color 0.15s;
-}
-
-.wiki-link:hover {
-  color: var(--clr-accent-hover);
-  text-decoration: underline;
-}
-
-.wiki-link--hidden {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Reader toggle: hide wiki links in chapter prose when the reader turns them off.
-   Scoped to .chapter__body so wiki-entry internal links are never affected. */
-[data-wiki-links="hidden"] .chapter__body .wiki-link {
-  color: inherit;
-  text-decoration: none;
-  pointer-events: none;
-  cursor: text;
-}
-
-/* -----------------------------------------------------------------
-   Chapter pagination nav
-   ----------------------------------------------------------------- */
-.chapter__pagination {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--clr-border);
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-}
-
-/* -----------------------------------------------------------------
-   Reader controls — floating pill (fixed, bottom-right)
-   ----------------------------------------------------------------- */
-.reader-controls {
+.reader-bar {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 50;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  z-index: var(--z-reader-bar);
+  background: rgba(7,8,14,0.82);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom: 1px solid var(--border-med);
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.45rem 0.75rem;
-  background: var(--clr-ctrl-bg);
-  border: 1px solid var(--clr-ctrl-border);
-  border-radius: 2rem;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
-  font-family: var(--font-ui);
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-              transform 0.22s ease;
+  justify-content: space-between;
+  padding: 0 1rem;
+  gap: 0.5rem;
 }
-
-/* Slide the pill below the viewport when scrolling down. */
-.reader-controls--hidden {
-  transform: translateY(calc(100% + 2.5rem));
+.reader-wrap[data-reader-theme="light"] .reader-bar,
+:root[data-reader-theme="light"] .reader-bar {
+  background: rgba(247,243,236,0.90);
+  border-bottom-color: rgba(0,0,0,0.10);
 }
-
-.reader-controls__divider {
-  width: 1px;
-  height: 1.25rem;
-  background: var(--clr-border);
-  margin: 0 0.125rem;
+.reader-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--violet), var(--blue), transparent);
+  opacity: 0.35;
 }
-
-/* Font-size buttons — visually distinct sizes show the scale */
-.reader-controls__btn {
-  background: none;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  color: var(--clr-ctrl-text);
-  line-height: 1;
-  padding: 0.3rem 0.4rem;
-  font-family: var(--font-ui);
-  font-weight: 600;
-  transition: background-color 0.15s, color 0.15s;
+.reader-bar-left,
+.reader-bar-right {
+  display: flex; align-items: center; gap: 0.25rem;
 }
-
-.reader-controls__btn:hover {
-  background-color: var(--clr-border);
+.reader-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  height: 34px; padding: 0 0.75rem;
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-secondary); background: transparent;
+  border: none; border-radius: 6px; cursor: pointer;
+  text-decoration: none;
+  transition: color var(--dur-fast), background var(--dur-fast);
 }
-
-.reader-controls__btn[aria-pressed="true"] {
-  background-color: var(--clr-ctrl-active-bg);
-  color: var(--clr-ctrl-active-fg);
+.reader-btn:hover { color: var(--text-bright); background: rgba(255,255,255,0.07); }
+.reader-wrap[data-reader-theme="light"] .reader-btn:hover,
+:root[data-reader-theme="light"] .reader-btn:hover {
+  background: rgba(0,0,0,0.05);
 }
+.reader-btn svg { flex-shrink: 0; }
+.reader-btn-label { /* hide on mobile via media query */ }
 
-.reader-controls__btn--sm { font-size: 0.7rem; }
-.reader-controls__btn--md { font-size: 0.9rem; }
-.reader-controls__btn--lg { font-size: 1.1rem; }
-
-.reader-controls__btn--wiki {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+/* -----------------------------------------------------------------
+   Reader prose
+   ----------------------------------------------------------------- */
+.reader-prose-wrap {
+  padding-top: 80px;
+  padding-bottom: 6rem;
+  min-height: 100vh;
 }
-
-.reader-controls__theme-btn {
-  background: none;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  color: var(--clr-text-muted);
-  padding: 0.3rem 0.4rem;
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
-  transition: color 0.15s, background-color 0.15s;
+.reader-prose {
+  --reader-font-size: 18px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 2rem 0;
+  font-size: var(--reader-font-size);
+  line-height: 1.85;
 }
+.reader-chapter-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.reader-arc {
+  font-family: var(--font-ui); font-size: 0.65rem; font-weight: 600;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--violet); margin-bottom: 0.5rem;
+}
+.reader-chapter-num {
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 0.75rem;
+}
+.reader-chapter-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 700;
+  color: var(--text-bright); letter-spacing: 0.03em;
+  margin-bottom: 0.75rem;
+}
+.reader-chapter-date {
+  font-family: var(--font-ui); font-size: 0.72rem;
+  color: var(--text-muted); letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+.reader-chapter-summary {
+  font-family: var(--font-body); font-size: 0.9rem; line-height: 1.7;
+  color: var(--text-secondary); font-style: italic;
+}
+.reader-prose p  { margin-bottom: 1.4em; color: var(--text-primary); }
+.reader-prose h1, .reader-prose h2, .reader-prose h3 { font-family: var(--font-display); color: var(--text-bright); margin: 2em 0 0.75em; }
+.reader-prose h2 { font-size: 1.3em; }
+.reader-prose h3 { font-size: 1.05em; }
+.reader-prose hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+.reader-prose a { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.reader-prose a:hover { color: var(--blue-light); }
+.reader-prose ul, .reader-prose ol { margin: 0.75em 0 1.4em 1.5em; }
+.reader-prose li { margin-bottom: 0.35em; }
 
-.reader-controls__theme-btn:hover {
-  background-color: var(--clr-border);
-  color: var(--clr-text);
+/* Wiki links */
+.wiki-link { color: var(--violet); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+[data-wiki-links="hidden"] .wiki-link { display: none; }
+[data-wiki-links="hidden"] .wiki-link--hidden { display: none; }
+
+/* Reader pagination */
+.reader-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 2rem; padding: 3rem 2rem;
+  max-width: 680px; margin: 0 auto;
+  border-top: 1px solid var(--border);
 }
 
 /* -----------------------------------------------------------------
-   General heading styles (wiki entries, misc pages)
+   Settings popover
    ----------------------------------------------------------------- */
-h1 {
-  font-family: var(--font-body);
-  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-  color: var(--clr-text);
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
-}
+.reader-settings-anchor { position: relative; }
 
-h2 {
-  font-family: var(--font-body);
-  font-size: clamp(1.1rem, 2.5vw, 1.45rem);
-  color: var(--clr-text);
-  margin: 1.75em 0 0.5em;
+.reader-settings {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: var(--z-settings);
+  width: 260px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-med);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  display: none;
 }
-
-h3 {
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--clr-text);
-  margin: 1.5em 0 0.4em;
+.reader-settings--open { display: block; }
+.reader-settings-row { display: flex; align-items: center; justify-content: space-between; padding: 0.625rem 0; }
+.reader-settings-row + .reader-settings-row { border-top: 1px solid var(--border); }
+.reader-settings-label {
+  font-family: var(--font-ui); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary);
+}
+.reader-toggle-group { display: flex; gap: 0.25rem; }
+.reader-toggle-btn {
+  height: 28px; padding: 0 0.625rem;
+  font-family: var(--font-ui); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted); background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer;
+  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+}
+.reader-toggle-btn:hover { color: var(--text-primary); background: var(--surface-4); }
+.reader-toggle-btn[aria-pressed="true"] {
+  color: var(--text-bright); background: var(--surface-4);
+  border-color: var(--border-med);
+}
+.reader-wrap[data-reader-theme="light"] .reader-settings,
+:root[data-reader-theme="light"] .reader-settings {
+  background: #fff;
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
 }
 
 /* -----------------------------------------------------------------
-   Responsive — Mobile (≤ 480px)
+   Responsive
    ----------------------------------------------------------------- */
-@media (max-width: 480px) {
-  .reader-controls {
-    right: 50%;
-    transform: translateX(50%);
-    bottom: 1rem;
-  }
-
-  /* On mobile the base transform includes translateX for centering,
-     so the hidden state must carry both axes together. */
-  .reader-controls--hidden {
-    transform: translateX(50%) translateY(calc(100% + 2rem));
-  }
-
-  .chapter__body p {
-    text-indent: 0;
-  }
-
-  .chapter__body p + p {
-    margin-top: 0.75em;
-  }
-}
-
-/* -----------------------------------------------------------------
-   Responsive — Tablet (481px – 900px)
-   ----------------------------------------------------------------- */
-@media (min-width: 481px) and (max-width: 900px) {
-  :root {
-    --reading-max-width: 92vw;
-  }
-}
-
-/* -----------------------------------------------------------------
-   Account nav button (rightmost, JS-driven)
-   ----------------------------------------------------------------- */
-.nav__item--account {
-  margin-left: auto;
-}
-
-.nav__account-btn {
-  background: none;
-  border: 1px solid var(--clr-border);
-  border-radius: 0.375rem;
-  cursor: pointer;
-  padding: 0.25rem 0.75rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  color: var(--clr-text);
-  transition: border-color 0.15s, color 0.15s;
-  white-space: nowrap;
-}
-
-.nav__account-btn:hover {
-  border-color: var(--clr-accent);
-  color: var(--clr-accent);
-}
-
-/* Divider row inside account dropdown */
-.nav__subitem--divider {
-  border-top: 1px solid var(--clr-border);
-  margin: 0.25rem 0;
-  padding: 0;
-}
-
-/* Sign-out button styled to look like a nav link */
-.nav__sublink--btn {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.4rem 1rem;
-  text-align: left;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  color: var(--clr-text);
-  transition: background-color 0.1s, color 0.1s;
-}
-
-.nav__sublink--btn:hover {
-  background-color: var(--clr-border);
-  color: var(--clr-accent);
-}
-
-/* -----------------------------------------------------------------
-   Shared form primitives (used on /account/ and future pages)
-   ----------------------------------------------------------------- */
-.form-card {
-  background: var(--clr-surface);
-  border: 1px solid var(--clr-border);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--clr-text-muted);
-  margin-bottom: 0.375rem;
-}
-
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"] {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--clr-border);
-  border-radius: 0.375rem;
-  background: var(--clr-bg);
-  color: var(--clr-text);
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  transition: border-color 0.15s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--clr-accent);
-}
-
-.form-error {
-  font-family: var(--font-ui);
-  font-size: 0.8rem;
-  color: #c0392b;
-  margin-top: 0.5rem;
-  min-height: 1.2em;
-}
-
-.form-success {
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 1.25rem 0 0.5rem;
-  color: var(--clr-text);
-}
-
-/* Primary action button (full-width, accent fill) */
-.btn-primary {
-  display: block;
-  width: 100%;
-  margin-top: 1.25rem;
-  padding: 0.6rem 1rem;
-  background: var(--clr-accent);
-  color: #fff;
-  border: none;
-  border-radius: 0.375rem;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.btn-primary:hover  { background: var(--clr-accent-hover); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-/* Secondary action button (outline) */
-.btn-secondary {
-  padding: 0.5rem 1.25rem;
-  background: none;
-  color: var(--clr-text);
-  border: 1px solid var(--clr-border);
-  border-radius: 0.375rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.btn-secondary:hover {
-  border-color: var(--clr-accent);
-  color: var(--clr-accent);
-}
-
-/* -----------------------------------------------------------------
-   Tab strip (login/register page)
-   ----------------------------------------------------------------- */
-.tab-strip {
-  display: flex;
-  border-bottom: 2px solid var(--clr-border);
-  margin-bottom: 1.5rem;
-}
-
-.tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  cursor: pointer;
-  padding: 0.5rem 1.25rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  color: var(--clr-text-muted);
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.tab-btn[aria-selected="true"] {
-  color: var(--clr-accent);
-  border-bottom-color: var(--clr-accent);
-}
-
-.tab-panel[hidden] { display: none; }
-
-/* -----------------------------------------------------------------
-   Auth page layout (/account/)
-   ----------------------------------------------------------------- */
-.auth-page {
-  max-width: 28rem;
-  margin: 3rem auto;
-}
-
-.auth-page h1 {
-  font-family: var(--font-ui);
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-/* -----------------------------------------------------------------
-   Profile page layout (/account/profile/)
-   ----------------------------------------------------------------- */
-.profile-page {
-  max-width: 32rem;
-  margin: 3rem auto;
-}
-
-.profile-page h1 {
-  font-family: var(--font-ui);
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.profile-card {
-  background: var(--clr-surface);
-  border: 1px solid var(--clr-border);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.profile-field {
-  display: flex;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--clr-border);
-}
-
-.profile-field:last-of-type { border-bottom: none; }
-
-.profile-label {
-  min-width: 4rem;
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--clr-text-muted);
-}
-
-.profile-value {
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  color: var(--clr-text);
-}
-
-/* -----------------------------------------------------------------
-   Badges (role / tier)
-   ----------------------------------------------------------------- */
-.badge {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* admin badge: purple tint (matches accent) */
-.badge--admin {
-  background: #ede8f7;
-  color: #4e3888;
-}
-
-[data-theme="dark"] .badge--admin {
-  background: #2e2848;
-  color: #c0a0e0;
-}
-
-/* user / free badges: muted neutral */
-.badge--user,
-.badge--free {
-  background: var(--clr-ctrl-bg);
-  border: 1px solid var(--clr-border);
-  color: var(--clr-text-muted);
+@media (max-width: 600px) {
+  .reader-btn-label { display: none; }
+  .reader-prose { padding: 1.5rem 1.25rem 0; }
 }
