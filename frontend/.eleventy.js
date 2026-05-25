@@ -123,6 +123,17 @@ module.exports = function(eleventyConfig) {
       .replace(/[\s_]+/g, "-");
   });
 
+  // getPrevNext: given a collection and the current page URL,
+  // returns { prev, next } page objects (or null if at the boundary).
+  // Used in chapter.njk to render the Prev/Next top bar buttons.
+  eleventyConfig.addFilter("getPrevNext", function(collection, url) {
+    const idx = collection.findIndex(c => c.url === url);
+    return {
+      prev: idx > 0 ? collection[idx - 1] : null,
+      next: idx < collection.length - 1 ? collection[idx + 1] : null,
+    };
+  });
+
   // ---------------------------------------------------------------------------
   // 4. WIKI LINK PROCESSOR
   // ---------------------------------------------------------------------------
