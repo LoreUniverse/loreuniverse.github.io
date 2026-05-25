@@ -1,0 +1,62 @@
+/* =================================================================
+   LORE UNIVERSE — DESIGN TOKENS V2
+   Single source of truth for palette, fonts, motion, z-index.
+   @import'd by site.css and reader.css — never loaded directly.
+   ================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Rajdhani:wght@400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+:root {
+  /* Background depth */
+  --void:      #07080e;
+  --surface-1: #0e1020;
+  --surface-2: #161930;
+  --surface-3: #1e2240;
+  --surface-4: #262b50;
+
+  /* Borders */
+  --border:     rgba(255,255,255,0.07);
+  --border-med: rgba(255,255,255,0.12);
+  --border-hi:  rgba(255,255,255,0.20);
+
+  /* Gold */
+  --gold:       #f59e0b;
+  --gold-light: #fbbf24;
+  --gold-dim:   rgba(245,158,11,0.12);
+  --gold-glow:  0 0 20px rgba(245,158,11,0.5), 0 0 60px rgba(245,158,11,0.18);
+
+  /* Blue */
+  --blue:       #38bdf8;
+  --blue-light: #7dd3fc;
+  --blue-dim:   rgba(56,189,248,0.10);
+  --blue-glow:  0 0 20px rgba(56,189,248,0.5), 0 0 60px rgba(56,189,248,0.18);
+
+  /* Violet */
+  --violet:       #c084fc;
+  --violet-light: #d8b4fe;
+  --violet-dim:   rgba(192,132,252,0.10);
+  --violet-glow:  0 0 20px rgba(192,132,252,0.5), 0 0 60px rgba(192,132,252,0.18);
+
+  /* Text */
+  --text-bright:     #f0f1fa;
+  --text-primary:    #c4c8de;
+  --text-secondary:  #8b8fa8;
+  --text-muted:      #545873;
+  --text-faint:      #383b56;
+
+  /* Typography */
+  --font-display: 'Cinzel Decorative', serif;
+  --font-ui:      'Rajdhani', sans-serif;
+  --font-body:    'Inter', sans-serif;
+
+  /* Motion */
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 350ms;
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Z-index scale */
+  --z-nav:        50;
+  --z-reader-bar: 50;
+  --z-settings:  100;
+}
