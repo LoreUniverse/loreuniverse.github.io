@@ -164,7 +164,8 @@ const observer = new IntersectionObserver(async (entries) => {
   const result = await markRead(bookSlug, chapterSlug);
   if (result.ok) {
     badge.hidden = false;
-  } else if (result.needsAuth) {
+  } else if (result.needsAuth && !sessionStorage.getItem('lr-progress-nudge-shown')) {
+    sessionStorage.setItem('lr-progress-nudge-shown', '1');
     const p = document.createElement('p');
     p.style.cssText = 'text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:1rem';
     p.innerHTML = `<a href="/account/?redirect=${encodeURIComponent(location.pathname)}" style="color:var(--blue)">Sign in</a> to track your reading progress.`;
