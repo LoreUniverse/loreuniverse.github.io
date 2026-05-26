@@ -87,6 +87,7 @@ lorekeeper/                          ← repo root (local name)
 │       │   └── wiki.js              ← build-time API fetch → wiki data for templates
 │       ├── _includes/
 │       │   ├── base.njk             ← root layout for all non-reader pages (loads site.css)
+│       │   ├── admin.njk            ← admin layout extending base.njk; adds Alpine CDN + sidebar nav
 │       │   ├── reader-layout.njk    ← standalone layout for chapter pages only (loads reader.css, no nav/footer)
 │       │   ├── redirect.njk         ← meta-refresh redirect template
 │       │   ├── chapter.njk          ← chapter reading template (uses reader-layout.njk)
@@ -109,6 +110,13 @@ lorekeeper/                          ← repo root (local name)
 │       │   ├── locations/index.md   ← uses wiki-category.njk + category_key: locations
 │       │   ├── factions/index.md    ← uses wiki-category.njk + category_key: factions
 │       │   └── lore/index.md        ← uses wiki-category.njk + category_key: lore
+│       ├── admin/                   ← Admin panel (layout: admin.njk via admin.11tydata.json; Alpine.js)
+│       │   ├── index.njk            ← /admin/ — dashboard (health, wiki counts, rebuild)
+│       │   ├── wiki/index.njk       ← /admin/wiki/ — all entries + publish toggle
+│       │   ├── users/index.njk      ← /admin/users/ — paginated user list + ban/unban
+│       │   ├── applications/index.njk ← /admin/applications/ — approve/reject permission requests
+│       │   ├── tokens/index.njk     ← /admin/tokens/ — create/revoke API tokens
+│       │   └── audit/index.njk      ← /admin/audit/ — paginated audit log with filter
 │       ├── account/                 ← Auth UI
 │       │   ├── index.njk            ← /account/ (sign in / sign up / reset)
 │       │   └── profile/index.njk   ← /account/profile/
@@ -151,7 +159,7 @@ lorekeeper/                          ← repo root (local name)
 │       │   ├── wiki/                ← wiki entry routes, plugin, sync helper
 │       │   ├── books/               ← book routes + plugin
 │       │   ├── chapters/            ← chapter routes + plugin + sync helper
-│       │   └── admin/               ← autolink + site-rebuild routes, Claude plugin
+│       │   └── admin/               ← autolink, site-rebuild, wiki admin (GET+PATCH), user list, audit log routes
 │       └── lib/
 │           └── external/
 │               ├── claude.ts        ← AnthropicClaudeClient + FakeClaudeClient
@@ -247,6 +255,8 @@ Base URL: `https://loreuniverse-api.fly.dev`
 |---|---|---|---|
 | GET | `/api/wiki/all` | none | All published wiki entries |
 | GET | `/api/wiki/:category/:slug` | none | Single published wiki entry |
+| GET | `/api/admin/wiki` | session + admin role | All wiki entries including unpublished |
+| PATCH | `/api/admin/wiki/:category/:slug` | session + admin role | Toggle `isPublished`; writes `wiki.publish`/`wiki.unpublish` audit log |
 | PUT | `/api/admin/wiki/:category/:slug` | session + `wiki_edit` permission | Upsert entry + create revision + trigger rebuild |
 
 ### Books & Chapters
@@ -268,7 +278,7 @@ Base URL: `https://loreuniverse-api.fly.dev`
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | POST | `/api/user/permissions/apply` | session | Submit permission application |
-| GET | `/api/admin/users` | admin | *(planned — not yet implemented)* |
+| GET | `/api/admin/users` | admin | Paginated user list (`?page=&limit=`) — returns `{users, total, page, limit}` |
 | POST | `/api/admin/users/:id/ban` | admin | Ban user |
 | POST | `/api/admin/users/:id/unban` | admin | Unban user |
 | POST | `/api/admin/permissions/grant` | admin | Grant permission to user |
@@ -280,6 +290,7 @@ Base URL: `https://loreuniverse-api.fly.dev`
 ### Admin Tools
 | Method | Path | Auth | Description |
 |---|---|---|---|
+| GET | `/api/admin/audit` | admin | Paginated audit log (`?page=&limit=`) — returns `{entries, total, page, limit}` |
 | POST | `/api/admin/autolink` | admin | Claude autolink on chapter prose (body: `{chapterText, policy?}`) |
 | POST | `/api/admin/site-rebuild` | admin | Fire `wiki-content-changed` repository_dispatch → triggers Eleventy rebuild |
 | GET | `/health` | none | All 9 module health checks |
@@ -385,6 +396,20 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 9. Eleventy stays the static site builder; wiki content is fetched at build time, user-specific data is hydrated client-side.
 10. Authorization always evaluates against the user's current role; token prefixes are identification only.
 
+### Global CORS (server.ts)
+Non-auth routes get CORS headers via two mechanisms registered before `authPlugin`:
+1. `onSend` hook — adds `Access-Control-Allow-Origin` + `Access-Control-Allow-Credentials` for any origin in `ALLOWED_ORIGINS` env var; guards with `!reply.hasHeader('access-control-allow-origin')` so it doesn't overwrite auth plugin headers
+2. `app.options('*')` handler — returns 204 with full preflight headers for allowed origins, 403 otherwise
+
+Auth plugin (`/api/auth/*`) manages its own CORS independently. When adding new non-auth routes, no per-route CORS config is needed.
+
+### Admin Frontend Conventions
+- Admin pages live at `frontend/src/admin/` with layout assigned via `admin/admin.11tydata.json` (JSON, not JS — avoids `export default` in CommonJS project)
+- `admin.njk` extends `base.njk` and loads Alpine.js CDN (pinned 3.14.9) with `defer`
+- All admin pages are Alpine.js components (`x-data="componentName()"`, `x-init="init()"`)
+- Auth check in each page's `init()`: fetch `/api/auth/get-session`, verify `session.user.role === 'admin'`, redirect to `/account/?redirect=...` if not
+- 403 tests for admin routes: use session mocking `(app as any).auth = { api: { getSession: async () => ({ user: { id } }) } }` — do NOT use `tokens.create({ userRole: 'user' })` (token service rejects non-admin/moderator roles)
+
 ### Testing Posture
 - Backend: Vitest integration tests; `withRollbackDb` wraps each test in a transaction that rolls back — no test data persists.
 - External dependencies: `FakeClaudeClient`, `FakeGitHubDispatchClient` injected directly in tests. Factory functions throw in `NODE_ENV=test` to enforce injection.
@@ -402,6 +427,7 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | Foundation B | Postgres (Neon), Drizzle, Better Auth, Resend, email-verified auth flows | ✅ Merged |
 | Foundation C | Role/permission middleware, API tokens, audit log, ban/grant/application endpoints | ✅ Merged |
 | Foundation D | Books/chapters/wiki tables, Claude autolink, GitHub dispatch rebuild, Eleventy build-time wiki fetch | ✅ Merged |
+| Plan E (Admin Panel) | Admin control panel at `/admin/` — wiki, user, audit, tokens, applications, dashboard pages | ✅ Live on production |
 | Plan F (V2 Design) | Dark techno-arcane design system, V2 CSS, reader isolation, all page templates, auth UI | ✅ Live on production |
 
 ### Infrastructure
@@ -412,7 +438,7 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | CI/CD (deploy-backend.yml) | ✅ Tests + deploy on push to main |
 | CI/CD (deploy-site.yml) | ✅ Builds + deploys on push + repository_dispatch |
 | Neon database | ✅ Live — 3 migrations applied |
-| Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY |
+| Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY, ALLOWED_ORIGINS |
 | GitHub secret (lorekeeper repo) | ✅ `LORE_API_URL_BUILD` set — wiki data fetched at build time |
 | GitHub push auth | ✅ Resolved |
 | Account button cold start delay | ✅ `keep-warm.yml` GitHub Actions workflow pings `/health` every 5 minutes to prevent Fly.io scale-to-zero cold starts |
@@ -425,19 +451,31 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 | Unresolved [[links]] | ⚠️ Several wiki entries still contain `[[double bracket]]` links not yet converted (e.g. Pinelopi mentions `[[Mythos Corp]]`, Lore Traits mentions `[[Lore Power]]`, `[[Loreseekers]]`) |
 | Book 1 chapters | ⬜ Chapters 1–3 exist as placeholder files. No real prose added yet. |
 | Visual design | ✅ V2 complete — dark techno-arcane design, full CSS system, reader isolation, auth UI |
-| Admin control panel | ⬜ No admin UI — Plan E |
+| Admin control panel | ✅ Live at `/admin/` — dashboard, wiki, users, applications, tokens, audit log |
 
-### Recent Frontend Bug Fixes (this session)
-- **Homepage wiki preview**: was broken due to Nunjucks `slice` filter being a chunking operation, not JS `Array.slice`. Fixed with a custom `limit` filter in `.eleventy.js`. Also added a `wikiRecentEntries` collection combining all 6 categories so the fallback works without the API.
-- **Wiki link toggle**: was using `display: none` (removed word from layout). Fixed to `color: inherit; text-decoration: none; pointer-events: none` so the word stays but loses link styling.
-- **Page title font**: Cinzel Decorative's O letterforms collide visually in words like "Books" and "Book 1". Swapped `.books-page-title` and `.chapters-page-title` to Cinzel (non-decorative) at `letter-spacing: 0.04em`.
-- **Wiki entry page padding**: `.wiki-entry` had no base CSS rule, causing navbar overlap. Added `padding: 8rem 2rem 6rem; max-width: 960px; margin: 0 auto`.
-- **Nav account dropdown**: restructured nav HTML to match `auth.js` IDs (`#nav-account`, `#nav-account-btn`, `#nav-account-menu`); dropdown now floats properly (removed `overflow: hidden` from `.nav`); nav links centered via CSS grid.
-- **Auth sign-in flow**: `signIn()` now caches session from response immediately, so the nav button updates to the user's first name on redirect without waiting for a second API call.
-- **Auth guard on `/account/`**: signed-in users are redirected to `/account/profile/` via `location.replace()`.
-- **Latest Chapter label**: "Now Reading" renamed to "Latest Chapter" site-wide (with TODO for reading-progress feature).
-- **Library "Read the Story" card**: was linking to Book 1 chapters directly; corrected to `/library/books/`.
-- **Nav centering**: switched `.nav-inner` from `flex + justify-content: space-between` to `grid 1fr auto 1fr` so nav links are always geometrically centered.
+### Plan E — Admin Control Panel (completed 2026-05-25)
+
+**Backend additions:**
+- `GET /api/admin/wiki` — returns all wiki entries including unpublished, ordered by category/slug
+- `PATCH /api/admin/wiki/:category/:slug` — toggles `isPublished`, writes `wiki.publish`/`wiki.unpublish` to audit log
+- `GET /api/admin/users` — paginated user list with ban status; no passwords returned; token minting restricted to admin/moderator roles so 403 tests use session mocking instead
+- `GET /api/admin/audit` — paginated audit log, newest-first
+- Global CORS fix in `server.ts`: `onSend` hook + `app.options('*')` handler read `ALLOWED_ORIGINS` env var and apply headers to all non-auth routes. Auth plugin handles its own CORS on `/api/auth/*`; the hook guards with `!reply.hasHeader('access-control-allow-origin')` to avoid overwriting it. Fly secret `ALLOWED_ORIGINS` must include the GitHub Pages origin.
+
+**Frontend additions (`frontend/src/`):**
+- `_includes/admin.njk` — new layout extending `base.njk`; Alpine.js CDN (3.14.9) pinned in `<script defer>`; sidebar nav linking all 6 admin sections
+- `admin/admin.11tydata.json` — JSON (not JS) directory data file assigning `admin.njk` layout to all pages under `/admin/`; JSON used because frontend is `"type": "commonjs"` and avoids `export default` syntax issues
+- `admin/index.njk` — dashboard: 9-module health status, wiki published/total counts, manual rebuild button
+- `admin/wiki/index.njk` — table of all entries (including unpublished), publish toggle with optimistic update, unresolved `[[...]]` link detection via client-side regex
+- `admin/users/index.njk` — paginated user table, inline ban flow with reason input, unban
+- `admin/applications/index.njk` — pending permission applications as cards with approve/reject + optional note
+- `admin/tokens/index.njk` — create API token (plaintext shown once with clipboard copy), revoke; uses `/api/account/api-tokens`
+- `admin/audit/index.njk` — paginated audit log with client-side filter on action, expandable metadata via `<details>`
+- `assets/css/site.css` — appended admin CSS: `.admin-shell` (grid layout), `.admin-sidebar`, `.admin-nav__link`, `.admin-content`, `.admin-table`, `.admin-badge` (role variants), `.admin-input`, `.admin-form-row`, `.admin-card`, `.admin-plaintext-box`, `.admin-health-dot--ok/--down`, `.admin-error`, `.admin-pagination`, `.btn-danger`; responsive collapse at 768px; `:disabled` states on `.btn-primary`/`.btn-secondary`
+
+**Test fixes (for CI):**
+- 403 tests across wiki/user/audit routes now use session mocking (`(app as any).auth = { api: { getSession: async () => ({ user: { id } }) } }`) rather than `tokens.create({ userRole: 'user' })`, which the token service rejects
+- User count assertions changed to `toBeGreaterThanOrEqual(N)` + specific-ID checks because `COUNT(*)` sees committed rows from concurrent test files in the shared Neon CI database
 
 ### Immediate One-Time Actions Needed
 1. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
@@ -446,18 +484,17 @@ Each wiki category entry folder has a `.11tydata.json` assigning the correct per
 
 ## 9. Next Plans
 
-### Plan E — Admin Control Panel
-**Status:** Spec written — `docs/superpowers/specs/2026-05-24-admin-control-panel-design.md`. No implementation plan written yet.  
-**What it builds:** A `/admin/` section of the static site (Eleventy pages + Alpine.js CDN) with a GUI for all the backend admin features: site rebuild, wiki management, user management, permission applications, API tokens, and audit log.  
-**Why it's next:** All the backend infrastructure exists but there is no UI to interact with it — currently requires raw API calls. This plan makes the backend testable and usable in a browser.  
-**New backend needed:** `GET /api/admin/wiki` (all entries incl. unpublished), `PATCH /api/admin/wiki/:category/:slug` (toggle isPublished), `GET /api/admin/users` (list users), `GET /api/admin/audit` (paginated log).  
-**V2 design note:** The admin panel should use the V2 design system (`base.njk` + `site.css`) — the dark techno-arcane aesthetic works well for an admin interface.
+No plans are currently in progress. The natural next areas (each needs brainstorm → spec → plan):
+
+- **Content cleanup** — Remove or unpublish the 7 `test-*` wiki entries; resolve remaining `[[double bracket]]` links in Pinelopi and other entries
+- **Reading progress + bookmarks** — Track which chapters a logged-in user has read; bookmark chapters/wiki entries (see Section 10)
+- **Wiki editor UI** — Browser-based editor for wiki entries with live preview and revision history; would extend the existing admin wiki page
 
 ---
 
 ## 10. Future Feature Roadmap
 
-After Plans E and F, these are the natural next feature areas. Each needs its own brainstorm → spec → plan cycle.
+These are the natural next feature areas after current plans. Each needs its own brainstorm → spec → plan cycle.
 
 | Feature | Description |
 |---|---|
