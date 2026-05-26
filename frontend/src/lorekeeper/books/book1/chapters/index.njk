@@ -31,7 +31,9 @@ permalink: /library/books/book1/chapters/
     {% if collections.chapters and collections.chapters.length %}
     <div class="chapter-list">
       {% for chapter in collections.chapters %}
-      <a class="chapter-list-item" href="{{ chapter.url }}">
+      <a class="chapter-list-item" href="{{ chapter.url }}"
+        data-book-slug="book1"
+        data-chapter-slug="{{ chapter.page.fileSlug }}">
         <span class="chapter-list-num">Ch. {{ chapter.data.chapter_number }}</span>
         <div class="chapter-list-body">
           <div class="chapter-list-title">{{ chapter.data.title }}</div>
@@ -58,3 +60,23 @@ permalink: /library/books/book1/chapters/
 
   </div>
 </div>
+
+<script type="module">
+import { isRead } from '/assets/js/progress.js';
+
+function hydrateBadges() {
+  document.querySelectorAll('.chapter-list-item[data-chapter-slug]').forEach((item) => {
+    const bookSlug = item.dataset.bookSlug;
+    const chapterSlug = item.dataset.chapterSlug;
+    if (isRead(bookSlug, chapterSlug)) {
+      const badge = document.createElement('span');
+      badge.className = 'chapter-read-badge chapter-read-badge--list';
+      badge.textContent = '✓ Read';
+      item.querySelector('.chapter-list-arrow').before(badge);
+    }
+  });
+}
+
+hydrateBadges();
+document.addEventListener('progress-ready', hydrateBadges, { once: true });
+</script>
