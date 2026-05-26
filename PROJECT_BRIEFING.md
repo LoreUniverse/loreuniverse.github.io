@@ -530,7 +530,34 @@ The monorepo contains `frontend/`, `backend/`, `shared/`, `scripts/`, `docs/`.
 
 ---
 
-## 13. Cost Snapshot
+## 13. Known Test Failures
+
+The backend test suite has 9 persistent failures. None are regressions from active development work.
+
+### Root Cause 1 — Wiki DB contamination (6 failures)
+
+`DATABASE_URL` and `DATABASE_URL_TEST` point to the **same Neon database**. The wiki sync script was run against it at some point, permanently inserting 11 real wiki entries into `wiki_entries`. Tests that expect an empty or controlled `wiki_entries` table see those rows inside their `withRollbackDb` transaction and fail.
+
+**Affected tests:**
+- `src/features/wiki/routes.test.ts` — 5 tests (empty-initially, inserted entries, admin list, PATCH toggle, admin upsert)
+- `src/features/admin/autolink-routes.test.ts` — 1 test (wiki index slug order check)
+
+**Why we're not fixing it:** The correct fix is creating a dedicated test database on Neon and updating `DATABASE_URL_TEST`. That's infrastructure work unrelated to any feature. The alternative (adding `db.delete(schema.wikiEntries)` inside every affected `withRollbackDb` callback) is safe but would silently re-break if more sync runs happen. Until a separate test DB exists, these 6 failures are expected.
+
+### Root Cause 2 — Parallel test concurrency (3 failures)
+
+Vitest runs all test files in parallel by default. Under concurrent load against the shared test DB, three integration tests intermittently time out or see stale state. They pass reliably when run in isolation.
+
+**Affected tests:**
+- `src/features/permissions/ban-routes.test.ts` — 1 test
+- `src/features/permissions/grant-routes.test.ts` — 1 test
+- `src/features/permissions/middleware.test.ts` — 1 test
+
+**Why we're not fixing it:** Same dependency on a dedicated test database. Setting `singleFork: true` in `vitest.config.ts` would serialise all test files and fix the contention, but it masks the real issue (shared DB) and slows the suite significantly. Fix alongside the test DB separation.
+
+---
+
+## 14. Cost Snapshot
 
 | Layer | Service | Current cost |
 |---|---|---|
