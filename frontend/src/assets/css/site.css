@@ -659,6 +659,16 @@ a { color: inherit; text-decoration: none; }
   padding: 0.25rem 0.75rem; border-radius: 4px;
   display: inline-block;
 }
+.wiki-favorite-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--border-med);
+  border-radius: 6px; padding: 0.4rem; color: var(--text-muted);
+  cursor: pointer; transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  margin-top: 0.75rem;
+}
+.wiki-favorite-btn:hover { color: var(--gold); border-color: rgba(245,158,11,0.4); }
+.wiki-favorite-btn--active { color: var(--gold); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+.wiki-favorite-btn--active svg { fill: var(--gold); }
 .wiki-entry__meta {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem; margin-bottom: 2rem;
