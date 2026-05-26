@@ -500,8 +500,9 @@ a { color: inherit; text-decoration: none; }
 .wiki-card {
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: 10px; padding: 1.5rem;
-  min-height: 170px;
-  cursor: pointer; display: block; text-decoration: none;
+  min-height: 120px;
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center;
+  text-decoration: none;
   transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base);
 }
 .wiki-card:hover { border-color: rgba(192,132,252,0.3); box-shadow: 0 4px 28px rgba(192,132,252,0.08); transform: translateY(-3px); }
@@ -509,9 +510,17 @@ a { color: inherit; text-decoration: none; }
   background: var(--surface-1); border-style: dashed;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  text-align: center; gap: 0.5rem; min-height: 170px;
+  text-align: center; gap: 0.5rem; min-height: 120px;
 }
 .wiki-card--more:hover { border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.04); }
+.wiki-card-arrow {
+  margin-top: auto; padding-top: 0.875rem;
+  font-family: var(--font-ui); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--violet); opacity: 0.65;
+  transition: opacity var(--dur-fast), color var(--dur-fast);
+}
+.wiki-card:hover .wiki-card-arrow { opacity: 1; color: var(--violet-light); }
 .wiki-cat { font-family: var(--font-ui); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: var(--violet); margin-bottom: 0.5rem; }
 .wiki-entry-title { font-family: var(--font-display); font-size: 0.925rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.6rem; letter-spacing: 0.02em; }
 .wiki-entry-desc { font-family: var(--font-body); font-size: 0.825rem; line-height: 1.6; color: var(--text-secondary); }
@@ -956,7 +965,7 @@ a { color: inherit; text-decoration: none; }
   .explore-grid { grid-template-columns: 1fr 1fr; }
   .wiki-grid { grid-template-columns: 1fr 1fr; }
   .wiki-hub-grid { grid-template-columns: 1fr 1fr; }
-  .nav-menu-btn { display: flex; align-items: center; }
+  .nav-menu-btn { display: flex; align-items: center; justify-self: end; }
   .nav-links { display: none; }
   .nav-account { display: none; }
 }

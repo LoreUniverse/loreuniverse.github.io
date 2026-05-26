@@ -201,6 +201,7 @@ permalink: /
         {% if entry.description %}
         <p class="wiki-entry-desc">{{ entry.description | truncate(100) }}</p>
         {% endif %}
+        <div class="wiki-card-arrow">Go to Entry →</div>
       </a>
       {% endfor %}
       <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="View all wiki entries">
@@ -219,6 +220,7 @@ permalink: /
         <div class="wiki-cat">{{ item.url | wikiCategory | replace("-", " ") | title }}</div>
         <h3 class="wiki-entry-title">{{ item.data.name }}</h3>
         {% if item.data.summary %}<p class="wiki-entry-desc">{{ item.data.summary | truncate(100) }}</p>{% endif %}
+        <div class="wiki-card-arrow">Go to Entry →</div>
       </a>
       {% endfor %}
       <a class="wiki-card wiki-card--more" href="/wiki/" aria-label="View all wiki entries">
