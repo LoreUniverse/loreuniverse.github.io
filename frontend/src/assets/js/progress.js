@@ -44,6 +44,10 @@ function updateCache(fn) {
 // Public read helpers (synchronous — check the local cache only)
 // ---------------------------------------------------------------------------
 
+export function getProgress() {
+  return getCache() ?? { readChapters: [], favoriteWiki: [] };
+}
+
 export function isRead(bookSlug, chapterSlug) {
   const data = getCache();
   return data ? data.readChapters.includes(`${bookSlug}/${chapterSlug}`) : false;
