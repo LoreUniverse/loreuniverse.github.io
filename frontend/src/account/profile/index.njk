@@ -26,10 +26,24 @@ title: Profile
   </div>
 
   <button class="btn-secondary" id="profile-sign-out-btn" type="button" hidden>Sign out</button>
+
+  <section class="profile-section" id="profile-progress-section" hidden>
+    <h2 class="profile-section-title">Reading Progress</h2>
+    <ul class="profile-progress-list" id="profile-progress-list"></ul>
+    <p class="profile-section-empty" id="profile-progress-empty" hidden>No chapters read yet.</p>
+  </section>
+
+  <section class="profile-section" id="profile-favorites-section" hidden>
+    <h2 class="profile-section-title">Wiki Favorites</h2>
+    <ul class="profile-favorites-list" id="profile-favorites-list"></ul>
+    <p class="profile-section-empty" id="profile-favorites-empty" hidden>No favorites yet.</p>
+  </section>
+
 </div>
 
 <script type="module">
 import { getSession, signOut } from '/assets/js/auth.js';
+import { getProgress } from '/assets/js/progress.js';
 
 (async () => {
   const session = await getSession();
@@ -63,5 +77,42 @@ import { getSession, signOut } from '/assets/js/auth.js';
     await signOut();
     location.href = '/';
   });
+
+  function renderProgress() {
+    const { readChapters, favoriteWiki } = getProgress();
+
+    const progressSection = document.getElementById('profile-progress-section');
+    const progressList = document.getElementById('profile-progress-list');
+    const progressEmpty = document.getElementById('profile-progress-empty');
+    progressSection.hidden = false;
+    if (readChapters.length === 0) {
+      progressEmpty.hidden = false;
+    } else {
+      progressList.innerHTML = readChapters.map((key) => {
+        const [bookSlug, chapterSlug] = key.split('/');
+        const href = `/library/books/${bookSlug}/chapters/${chapterSlug}/`;
+        const label = chapterSlug.replace(/-/g, ' ');
+        return `<li class="profile-progress-item"><a href="${href}">${label}</a></li>`;
+      }).join('');
+    }
+
+    const favSection = document.getElementById('profile-favorites-section');
+    const favList = document.getElementById('profile-favorites-list');
+    const favEmpty = document.getElementById('profile-favorites-empty');
+    favSection.hidden = false;
+    if (favoriteWiki.length === 0) {
+      favEmpty.hidden = false;
+    } else {
+      favList.innerHTML = favoriteWiki.map((key) => {
+        const [category, slug] = key.split('/');
+        const href = `/wiki/${category}/${slug}/`;
+        const label = slug.replace(/-/g, ' ');
+        return `<li class="profile-favorites-item"><a href="${href}">${label}</a></li>`;
+      }).join('');
+    }
+  }
+
+  renderProgress();
+  document.addEventListener('progress-ready', renderProgress, { once: true });
 })();
 </script>
