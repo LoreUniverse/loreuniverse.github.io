@@ -127,6 +127,7 @@ lorekeeper/                          ← repo root (local name)
 │       │   │   └── reader.css       ← reader-only styles; @imports tokens.css; loaded by reader-layout.njk
 │       │   └── js/
 │       │       ├── auth.js          ← client-side auth (session check, account button state)
+│       │       ├── progress.js      ← reading progress + wiki favorites cache; exports isRead, isFavorited, markRead, unmarkRead, toggleFavorite, getProgress
 │       │       └── reader.js        ← reader settings: font size, wiki links, dark/light theme
 │       ├── redirects/               ← legacy /lorekeeper/* → new URLs
 │       ├── about/
@@ -140,7 +141,8 @@ lorekeeper/                          ← repo root (local name)
 │   ├── drizzle/                     ← migration SQL files
 │   │   ├── 0000_initial_better_auth.sql
 │   │   ├── 0001_permissions_tokens_audit.sql
-│   │   └── 0002_books_chapters_wiki.sql
+│   │   ├── 0002_books_chapters_wiki.sql
+│   │   └── 0003_reading_progress_favorites.sql
 │   ├── scripts/
 │   │   ├── .env.example
 │   │   └── autolink.js              ← CLI: POST /api/admin/autolink on a .md file
@@ -224,6 +226,14 @@ User fields of note: `id` (text), `name`, `email`, `emailVerified`, `role` (text
 **`wiki_revisions`**  
 `id` (uuid), `wikiEntryId` (uuid FK→wiki_entries cascade), `editorUserId` (text FK→user set null, nullable), `frontMatter` (jsonb), `body`, `editSummary` (nullable), `createdAt`
 
+### Plan G tables (migration 0003)
+
+**`chapter_reads`**  
+`id` (uuid), `userId` (text FK→users cascade), `chapterId` (uuid FK→chapters cascade), `readAt` (timestamptz, default now), unique on (`userId`, `chapterId`), index on `userId`
+
+**`wiki_favorites`**  
+`id` (uuid), `userId` (text FK→users cascade), `wikiEntryId` (uuid FK→wiki_entries cascade), `createdAt` (timestamptz, default now), unique on (`userId`, `wikiEntryId`), index on `userId`
+
 ### Wiki entry front matter schemas (by category)
 
 **characters:** `name`, `status` (alive|deceased|unknown), `species`, `factions` (slug list), `home_location` (slug), `lore_traits` (slug list), `skills` (list), `equipment` (list), `notes`  
@@ -287,13 +297,21 @@ Base URL: `https://loreuniverse-api.fly.dev`
 | POST | `/api/admin/permissions/applications/:id/approve` | admin | Approve application |
 | POST | `/api/admin/permissions/applications/:id/reject` | admin | Reject application |
 
+### User Progress
+| Method | Path | Auth | Rate limit | Description |
+|---|---|---|---|---|
+| GET | `/api/user/progress` | session | 20/min | Returns `{ readChapters: ["book1/slug", …], favoriteWiki: ["category/slug", …] }` |
+| POST | `/api/user/chapters/:bookSlug/:chapterSlug/read` | session | 30/min | Mark chapter read (upsert-ignore) |
+| DELETE | `/api/user/chapters/:bookSlug/:chapterSlug/read` | session | 10/min | Unmark chapter read |
+| POST | `/api/user/wiki/:category/:slug/favorite` | session | 20/min | Toggle wiki entry favorite; returns `{ favorited: boolean }` |
+
 ### Admin Tools
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/admin/audit` | admin | Paginated audit log (`?page=&limit=`) — returns `{entries, total, page, limit}` |
 | POST | `/api/admin/autolink` | admin | Claude autolink on chapter prose (body: `{chapterText, policy?}`) |
 | POST | `/api/admin/site-rebuild` | admin | Fire `wiki-content-changed` repository_dispatch → triggers Eleventy rebuild |
-| GET | `/health` | none | All 9 module health checks |
+| GET | `/health` | none | All 10 module health checks |
 
 **Authentication options:**
 - Session cookie (set by sign-in, sent automatically by browser)
@@ -429,6 +447,7 @@ Auth plugin (`/api/auth/*`) manages its own CORS independently. When adding new 
 | Foundation D | Books/chapters/wiki tables, Claude autolink, GitHub dispatch rebuild, Eleventy build-time wiki fetch | ✅ Merged |
 | Plan E (Admin Panel) | Admin control panel at `/admin/` — wiki, user, audit, tokens, applications, dashboard pages | ✅ Live on production |
 | Plan F (V2 Design) | Dark techno-arcane design system, V2 CSS, reader isolation, all page templates, auth UI | ✅ Live on production |
+| Plan G (Reading Progress + Favorites) | Auto-track read chapters (scroll sentinel), wiki star/favorites, chapter listing badges, profile sections | ✅ Live on production |
 
 ### Infrastructure
 | Component | State |
@@ -437,7 +456,7 @@ Auth plugin (`/api/auth/*`) manages its own CORS independently. When adding new 
 | Static site (loreuniverse.github.io) | ✅ Live — V2 design deployed |
 | CI/CD (deploy-backend.yml) | ✅ Tests + deploy on push to main |
 | CI/CD (deploy-site.yml) | ✅ Builds + deploys on push + repository_dispatch |
-| Neon database | ✅ Live — 3 migrations applied |
+| Neon database | ✅ Live — 4 migrations applied |
 | Fly secrets | ✅ Set: DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET, GITHUB_DISPATCH_TOKEN, GITHUB_DISPATCH_REPO, ANTHROPIC_API_KEY, ALLOWED_ORIGINS |
 | GitHub secret (lorekeeper repo) | ✅ `LORE_API_URL_BUILD` set — wiki data fetched at build time |
 | GitHub push auth | ✅ Resolved |
@@ -477,6 +496,25 @@ Auth plugin (`/api/auth/*`) manages its own CORS independently. When adding new 
 - 403 tests across wiki/user/audit routes now use session mocking (`(app as any).auth = { api: { getSession: async () => ({ user: { id } }) } }`) rather than `tokens.create({ userRole: 'user' })`, which the token service rejects
 - User count assertions changed to `toBeGreaterThanOrEqual(N)` + specific-ID checks because `COUNT(*)` sees committed rows from concurrent test files in the shared Neon CI database
 
+### Plan G — Reading Progress + Favorites (completed 2026-05-27)
+
+**Backend additions:**
+- `chapter_reads` + `wiki_favorites` tables (migration `0003`); FKs to `users` + `chapters`/`wiki_entries` with cascade delete
+- Progress service: `markRead` (upsert-ignore), `unmarkRead`, `toggleFavorite`, `getProgress` (filters unpublished)
+- 4 routes under `/api/user/`: `GET /progress`, `POST/DELETE /chapters/:book/:chapter/read`, `POST /wiki/:category/:slug/favorite`
+- `@fastify/rate-limit` registered globally in `server.ts` (per-route config via `config.rateLimit`)
+- 8 integration tests in `src/features/progress/routes.test.ts` — all passing
+
+**Frontend additions:**
+- `assets/js/progress.js` — sessionStorage cache (`lr-progress`, 5-min TTL); exports `isRead`, `isFavorited`, `markRead`, `unmarkRead`, `toggleFavorite`, `getProgress`; dispatches `progress-ready` CustomEvent after initial fetch
+- `chapter.njk` — scroll-to-bottom IntersectionObserver (threshold 0.9) calls `markRead()`; green ✓ Read badge (hydrates from cache + re-checks on `progress-ready`); sign-in nudge shown at most once per session (`lr-progress-nudge-shown` sessionStorage flag)
+- `reader-layout.njk` — loads `auth.js` and `progress.js` as ES modules
+- `lorekeeper/books/book1/chapters/index.njk` — data attributes on each list item; JS hydrates ✓ Read badges from cache
+- All 6 wiki category templates + `wiki-entry.njk` — star button in header; `toggleFavorite()` on click; hydrates from cache + re-checks on `progress-ready`
+- `account/profile/index.njk` — Reading Progress + Wiki Favorites sections rendered from `getProgress()`
+- `assets/css/site.css` — `.chapter-read-badge`, `.chapter-read-badge--list`, `.wiki-favorite-btn`, `.wiki-favorite-btn--active`, `.profile-section`, `.profile-section-title`, `.profile-progress-list`, `.profile-favorites-list`
+- `assets/css/reader.css` — `.chapter-read-badge` margin override
+
 ### Immediate One-Time Actions Needed
 1. **Remove or unpublish test entries** — delete `test-*.md` files from `frontend/src/wiki/*/` and re-run `sync-wiki.js`, or add `isPublished: false` to their front matter
 
@@ -486,9 +524,8 @@ Auth plugin (`/api/auth/*`) manages its own CORS independently. When adding new 
 
 No plans are currently in progress. The natural next areas (each needs brainstorm → spec → plan):
 
+- **Wiki editor UI** — Browser-based editor for wiki entries with live preview and revision history; would extend the existing admin wiki page ← **next up**
 - **Content cleanup** — Remove or unpublish the 7 `test-*` wiki entries; resolve remaining `[[double bracket]]` links in Pinelopi and other entries
-- **Reading progress + bookmarks** — Track which chapters a logged-in user has read; bookmark chapters/wiki entries (see Section 10)
-- **Wiki editor UI** — Browser-based editor for wiki entries with live preview and revision history; would extend the existing admin wiki page
 
 ---
 
@@ -498,7 +535,7 @@ These are the natural next feature areas after current plans. Each needs its own
 
 | Feature | Description |
 |---|---|
-| Reading progress + bookmarks | Track which chapters a logged-in user has read; bookmark chapters/wiki entries |
+| ~~Reading progress + favorites~~ | ~~Track which chapters a logged-in user has read; bookmark chapters/wiki entries~~ | ✅ Done (Plan G) |
 | Spoiler-aware wiki | Wiki entries reveal only information the reader's current progress entitles them to see |
 | Comments | Sentence-level, threaded, moderated, with GIF support (per chapter and per wiki entry) |
 | Wiki editor UI | Browser-based editor for wiki entries with live preview and revision history |
@@ -530,7 +567,34 @@ The monorepo contains `frontend/`, `backend/`, `shared/`, `scripts/`, `docs/`.
 
 ---
 
-## 13. Cost Snapshot
+## 13. Known Test Failures
+
+The backend test suite has 9 persistent failures. None are regressions from active development work.
+
+### Root Cause 1 — Wiki DB contamination (6 failures)
+
+`DATABASE_URL` and `DATABASE_URL_TEST` point to the **same Neon database**. The wiki sync script was run against it at some point, permanently inserting 11 real wiki entries into `wiki_entries`. Tests that expect an empty or controlled `wiki_entries` table see those rows inside their `withRollbackDb` transaction and fail.
+
+**Affected tests:**
+- `src/features/wiki/routes.test.ts` — 5 tests (empty-initially, inserted entries, admin list, PATCH toggle, admin upsert)
+- `src/features/admin/autolink-routes.test.ts` — 1 test (wiki index slug order check)
+
+**Why we're not fixing it:** The correct fix is creating a dedicated test database on Neon and updating `DATABASE_URL_TEST`. That's infrastructure work unrelated to any feature. The alternative (adding `db.delete(schema.wikiEntries)` inside every affected `withRollbackDb` callback) is safe but would silently re-break if more sync runs happen. Until a separate test DB exists, these 6 failures are expected.
+
+### Root Cause 2 — Parallel test concurrency (3 failures)
+
+Vitest runs all test files in parallel by default. Under concurrent load against the shared test DB, three integration tests intermittently time out or see stale state. They pass reliably when run in isolation.
+
+**Affected tests:**
+- `src/features/permissions/ban-routes.test.ts` — 1 test
+- `src/features/permissions/grant-routes.test.ts` — 1 test
+- `src/features/permissions/middleware.test.ts` — 1 test
+
+**Why we're not fixing it:** Same dependency on a dedicated test database. Setting `singleFork: true` in `vitest.config.ts` would serialise all test files and fix the contention, but it masks the real issue (shared DB) and slows the suite significantly. Fix alongside the test DB separation.
+
+---
+
+## 14. Cost Snapshot
 
 | Layer | Service | Current cost |
 |---|---|---|
