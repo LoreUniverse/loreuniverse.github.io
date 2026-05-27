@@ -251,3 +251,5 @@ a { color: inherit; text-decoration: none; }
   .reader-btn-label { display: none; }
   .reader-prose { padding: 1.5rem 1.25rem 0; }
 }
+
+.chapter-read-badge { margin-top: 0.5rem; }

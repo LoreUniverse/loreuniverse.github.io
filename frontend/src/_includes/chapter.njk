@@ -108,6 +108,7 @@ layout: reader-layout.njk
       <h1 class="reader-chapter-title">{{ title }}</h1>
       {% if publication_date %}<p class="reader-chapter-date">{{ publication_date | readableDate }}</p>{% endif %}
       {% if summary %}<p class="reader-chapter-summary">{{ summary }}</p>{% endif %}
+      <span class="chapter-read-badge" id="chapter-read-badge" hidden>✓ Read</span>
     </header>
 
     <section data-wiki-links="{{ wiki_links }}">
@@ -133,3 +134,44 @@ layout: reader-layout.njk
     {% endif %}
   </nav>
 </div>
+
+<div id="chapter-end-sentinel" style="height:1px"
+  data-book-slug="book1"
+  data-chapter-slug="{{ page.fileSlug }}"></div>
+
+<script type="module">
+import { isRead, markRead } from '/assets/js/progress.js';
+
+const sentinel    = document.getElementById('chapter-end-sentinel');
+const bookSlug    = sentinel.dataset.bookSlug;
+const chapterSlug = sentinel.dataset.chapterSlug;
+const badge       = document.getElementById('chapter-read-badge');
+
+// Show badge from cache immediately (warm if returning visitor in same session)
+if (isRead(bookSlug, chapterSlug)) badge.hidden = false;
+
+// Re-check after progress.js finishes its initial fetch (handles first-visit-in-session)
+document.addEventListener('progress-ready', () => {
+  if (isRead(bookSlug, chapterSlug)) badge.hidden = false;
+}, { once: true });
+
+// Auto-mark on scroll to bottom
+let marked = false;
+const observer = new IntersectionObserver(async (entries) => {
+  if (marked || !entries[0].isIntersecting) return;
+  marked = true;
+  observer.disconnect();
+  const result = await markRead(bookSlug, chapterSlug);
+  if (result.ok) {
+    badge.hidden = false;
+  } else if (result.needsAuth && !sessionStorage.getItem('lr-progress-nudge-shown')) {
+    sessionStorage.setItem('lr-progress-nudge-shown', '1');
+    const p = document.createElement('p');
+    p.style.cssText = 'text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:1rem';
+    p.innerHTML = `<a href="/account/?redirect=${encodeURIComponent(location.pathname)}" style="color:var(--blue)">Sign in</a> to track your reading progress.`;
+    sentinel.after(p);
+  }
+}, { threshold: 0.9 });
+
+observer.observe(sentinel);
+</script>

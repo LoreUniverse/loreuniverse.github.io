@@ -9,6 +9,8 @@ import wikiPlugin from './features/wiki/index.js';
 import booksPlugin from './features/books/index.js';
 import chaptersPlugin from './features/chapters/index.js';
 import adminPlugin from './features/admin/index.js';
+import rateLimit from '@fastify/rate-limit';
+import progressPlugin from './features/progress/index.js';
 import { createDb } from './db/client.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -70,6 +72,11 @@ async function buildServer() {
   await app.register(booksPlugin);
   await app.register(chaptersPlugin);
   await app.register(adminPlugin);
+  await app.register(rateLimit, {
+    global: false, // only routes with config.rateLimit are rate-limited
+    keyGenerator: (request) => (request as any).user?.id ?? request.ip,
+  });
+  await app.register(progressPlugin);
   await registerHealthRoute(app);
 
   return app;

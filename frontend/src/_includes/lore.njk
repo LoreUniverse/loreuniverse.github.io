@@ -14,6 +14,13 @@ layout: base.njk
   <header class="wiki-entry__header">
     <h1>{{ name }}</h1>
     <p class="wiki-entry__category">Lore</p>
+    <button class="wiki-favorite-btn" id="wiki-fav-btn"
+      data-category="lore" data-slug="{{ page.fileSlug }}"
+      aria-label="Add to favorites" aria-pressed="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    </button>
   </header>
 
   <section class="wiki-entry__meta">
@@ -66,3 +73,20 @@ layout: base.njk
   </section>
 
 </article>
+
+<script type="module">
+import { isFavorited, toggleFavorite } from '/assets/js/progress.js';
+const btn = document.getElementById('wiki-fav-btn');
+const { category, slug } = btn.dataset;
+function setActive(active) {
+  btn.setAttribute('aria-pressed', String(active));
+  btn.classList.toggle('wiki-favorite-btn--active', active);
+  btn.setAttribute('aria-label', active ? 'Remove from favorites' : 'Add to favorites');
+}
+setActive(isFavorited(category, slug));
+document.addEventListener('progress-ready', () => setActive(isFavorited(category, slug)), { once: true });
+btn.addEventListener('click', async () => {
+  const { favorited } = await toggleFavorite(category, slug);
+  setActive(favorited);
+});
+</script>

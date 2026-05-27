@@ -207,9 +207,40 @@ export const wikiRevisions = pgTable('wiki_revisions', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// ---------- CHAPTER READS ----------
+export const chapterReads = pgTable(
+  'chapter_reads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    chapterId: uuid('chapter_id').notNull().references(() => chapters.id, { onDelete: 'cascade' }),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uqUserChapter: uniqueIndex('chapter_reads_user_chapter_unique').on(t.userId, t.chapterId),
+    userIdx: index('chapter_reads_user_idx').on(t.userId),
+  }),
+);
+
+// ---------- WIKI FAVORITES ----------
+export const wikiFavorites = pgTable(
+  'wiki_favorites',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    wikiEntryId: uuid('wiki_entry_id').notNull().references(() => wikiEntries.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    uqUserEntry: uniqueIndex('wiki_favorites_user_entry_unique').on(t.userId, t.wikiEntryId),
+    userIdx: index('wiki_favorites_user_idx').on(t.userId),
+  }),
+);
+
 // Exports for Better Auth introspection
 export const schema = {
   users, sessions, accounts, verifications,
   userPermissions, permissionApplications, apiTokens, auditLog,
   books, chapters, wikiEntries, wikiRevisions,
+  chapterReads, wikiFavorites,
 };
