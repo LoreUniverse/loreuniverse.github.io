@@ -113,7 +113,10 @@ export async function signIn(email, password) {
     if (result.data?.user) {
       setCachedSession(result.data);
     } else {
+      // 401 response from apiFetch arrives as { data: null, error: null }.
+      // Surface it as a user-facing error rather than silently redirecting.
       clearCachedSession();
+      return { data: null, error: { message: 'Invalid email or password.' } };
     }
   }
   return result;
