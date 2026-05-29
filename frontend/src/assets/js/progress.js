@@ -1,5 +1,5 @@
 /**
- * progress.js — Reading progress + wiki favorites cache
+ * progress.js — Reading progress cache
  *
  * Mirrors the auth.js session-cache pattern.
  * Side effect: fetches /api/user/progress on DOMContentLoaded if signed in,
@@ -53,11 +53,6 @@ export function isRead(bookSlug, chapterSlug) {
   return data ? data.readChapters.includes(`${bookSlug}/${chapterSlug}`) : false;
 }
 
-export function isFavorited(category, slug) {
-  const data = getCache();
-  return data ? data.favoriteWiki.includes(`${category}/${slug}`) : false;
-}
-
 // ---------------------------------------------------------------------------
 // Public write helpers (hit API, update cache in-place)
 // ---------------------------------------------------------------------------
@@ -92,29 +87,6 @@ export async function unmarkRead(bookSlug, chapterSlug) {
       return d;
     });
   } catch { /* degrade silently */ }
-}
-
-export async function toggleFavorite(category, slug) {
-  try {
-    const res = await fetch(
-      `${API_BASE}/api/user/wiki/${category}/${slug}/favorite`,
-      { method: 'POST', credentials: 'include' },
-    );
-    if (!res.ok) return { favorited: isFavorited(category, slug) };
-    const { favorited } = await res.json();
-    updateCache((d) => {
-      const key = `${category}/${slug}`;
-      if (favorited) {
-        if (!d.favoriteWiki.includes(key)) d.favoriteWiki.push(key);
-      } else {
-        d.favoriteWiki = d.favoriteWiki.filter((k) => k !== key);
-      }
-      return d;
-    });
-    return { favorited };
-  } catch {
-    return { favorited: isFavorited(category, slug) };
-  }
 }
 
 // ---------------------------------------------------------------------------
